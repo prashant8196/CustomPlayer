@@ -4,7 +4,7 @@ plugins {
     id("maven-publish")
 }
 group = "com.github.prashant8196"
-version = "1.0"
+version = "1.0.0"
 
 afterEvaluate {
     configure<PublishingExtension> {
@@ -12,7 +12,7 @@ afterEvaluate {
             create<MavenPublication>("myLibraryPublication") {
                 groupId = "com.example.customplayer"
                 artifactId = "media3-custom-player"
-                version = "1.0"
+                version = "1.0.0-alpha"
             }
         }
     }
@@ -27,8 +27,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
-
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -63,6 +62,9 @@ dependencies {
     // For media playback using ExoPlayer
     implementation("androidx.media3:media3-exoplayer:$media3Version")
 
+    //For allowing jitpack to pick sdk from github
+    implementation("com.github.prashant8196:CustomPlayer:v1.0.0-alpha")
+
     // For DASH playback support with ExoPlayer
     implementation("androidx.media3:media3-exoplayer-dash:$media3Version")
     // For HLS playback support with ExoPlayer
@@ -81,6 +83,7 @@ dependencies {
     // For building media playback UIs for Android TV using the Jetpack Leanback library
     implementation("androidx.media3:media3-ui-leanback:$media3Version")
 
+    //Testing Dependencies
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

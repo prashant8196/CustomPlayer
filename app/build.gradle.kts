@@ -1,6 +1,21 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("maven-publish")
+}
+group = "com.github.prashant8196"
+version = "1.0"
+
+afterEvaluate {
+    configure<PublishingExtension> {
+        publications {
+            create<MavenPublication>("myLibraryPublication") {
+                groupId = "com.example.customplayer"
+                artifactId = "media3-custom-player"
+                version = "1.0"
+            }
+        }
+    }
 }
 
 android {
@@ -10,7 +25,6 @@ android {
     defaultConfig {
         applicationId = "com.example.customplayer"
         minSdk = 24
-        //noinspection EditedTargetSdkVersion
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -70,4 +84,5 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
 }

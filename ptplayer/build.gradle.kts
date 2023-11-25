@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.github.prashant8196"
-version = "1.0.2"
+version = "1.0.5"
 
 android {
     namespace = "com.example.ptplayer"

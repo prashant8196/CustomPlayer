@@ -1,4 +1,4 @@
-package com.example.customplayer
+package com.example.ptplayer.player
 
 object PlayerConstant {
 

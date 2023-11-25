@@ -1,6 +1,6 @@
 plugins {
     id("org.jetbrains.kotlin.android") version "1.9.0" apply true
-    id("com.android.library") version "8.1.2" apply true
+    id("com.android.library") version "8.0.0" apply true
     id("maven-publish")
 }
 
@@ -46,6 +46,7 @@ android {
         enable = true
     }
 }
+
 afterEvaluate {
     configure<PublishingExtension> {
         publications {

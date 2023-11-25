@@ -4,19 +4,7 @@ plugins {
     id("maven-publish")
 }
 group = "com.github.prashant8196"
-version = "1.0.5"
-
-afterEvaluate {
-    configure<PublishingExtension> {
-        publications {
-            create<MavenPublication>("myLibraryPublication") {
-                groupId = "com.example.customplayer"
-                artifactId = "media3-custom-player"
-                version = "1.0.5"
-            }
-        }
-    }
-}
+version = "1.0.6"
 
 android {
     namespace = "com.example.customplayer"
@@ -27,7 +15,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.5"
+        versionName = "1.0.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -47,9 +35,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-    viewBinding {
-        enable = true
-    }
+   viewBinding.enable = true
 }
 
 dependencies {

@@ -1,4 +1,4 @@
-package com.example.customplayer
+package com.example.ptplayer.player
 
 import android.content.Context
 import android.net.Uri
@@ -19,16 +19,16 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import androidx.media3.ui.PlayerView
-import com.example.customplayer.PlayerConstant.ALLOCATION_SIZE
-import com.example.customplayer.PlayerConstant.BACKWARD_INCREMENT
-import com.example.customplayer.PlayerConstant.BACK_BUFFER_DURATION
-import com.example.customplayer.PlayerConstant.BUFFER_FOR_PLAYBACK
-import com.example.customplayer.PlayerConstant.BUFFER_FOR_PLAYBACK_AFTER_RE_BUFFER
-import com.example.customplayer.PlayerConstant.FORWARD_INCREMENT
-import com.example.customplayer.PlayerConstant.MAX_BUFFER_DURATION
-import com.example.customplayer.PlayerConstant.MIN_BUFFER_DURATION
-import com.example.customplayer.databinding.CustomControlBinding
-import com.example.customplayer.databinding.PrashantCustomPlayerBinding
+import com.example.ptplayer.player.PlayerConstant.ALLOCATION_SIZE
+import com.example.ptplayer.player.PlayerConstant.BACKWARD_INCREMENT
+import com.example.ptplayer.player.PlayerConstant.BACK_BUFFER_DURATION
+import com.example.ptplayer.player.PlayerConstant.BUFFER_FOR_PLAYBACK
+import com.example.ptplayer.player.PlayerConstant.BUFFER_FOR_PLAYBACK_AFTER_RE_BUFFER
+import com.example.ptplayer.player.PlayerConstant.FORWARD_INCREMENT
+import com.example.ptplayer.player.PlayerConstant.MAX_BUFFER_DURATION
+import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
+import com.example.ptplayer.databinding.CustomControlBinding
+import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
 
 @UnstableApi class PrashantCustomPlayer (
     private val context:AppCompatActivity,
@@ -37,14 +37,14 @@ import com.example.customplayer.databinding.PrashantCustomPlayerBinding
 
     private var mediaPlayer:ExoPlayer? =  null
     private val mediaPlayerView:PlayerView? = null
-    private var playerSdkCallBack:PlayerSdkCallBack? = null
+    private var playerSdkCallBack: PlayerSdkCallBack? = null
     private var contentUrl: String? = null
-    private var contentType:ContentType? = null
+    private var contentType: ContentType? = null
     private var contentTitle:String? = null
     private var contentId:String? = null
     private var token:String? = null
     private lateinit var bindingPlayer: PrashantCustomPlayerBinding
-    private lateinit var bindingController:CustomControlBinding
+    private lateinit var bindingController: CustomControlBinding
         constructor(context:Context,attrs:AttributeSet) :this(
             context as AppCompatActivity,attrs,0
         )
@@ -188,7 +188,7 @@ import com.example.customplayer.databinding.PrashantCustomPlayerBinding
 
                Player.STATE_ENDED->{
 
-                   //need to call onPlayNextVideo if it is part of series else onvideostop
+                   //need to call onPlayNextVideo if it is part of series else onVideoStop
                    playerSdkCallBack?.onVideoStop()
                }
            }
@@ -245,7 +245,7 @@ import com.example.customplayer.databinding.PrashantCustomPlayerBinding
         token = key
     }
 
-    fun setContentMetaData(contentType:ContentType,contentTitle:String? ="",contentId:String){
+    fun setContentMetaData(contentType: ContentType, contentTitle:String? ="", contentId:String){
         this.contentType = contentType
         if (contentTitle?.isNotEmpty() == true){
             this.contentTitle = contentTitle

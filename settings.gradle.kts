@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CustomPlayer"
 include(":app")
+include(":ptplayer")

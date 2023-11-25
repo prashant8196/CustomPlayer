@@ -1,4 +1,4 @@
-package com.example.customplayer;
+package com.example.ptplayer.player;
 
 public enum ContentType {
         LIVE, VOD, AUD;

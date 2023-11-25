@@ -1,10 +1,18 @@
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.android") version "1.9.0" apply true
+    id("com.android.library") version "8.1.2" apply true
+    id("maven-publish")
 }
 
-group = "com.github.prashant8196"
-version = "1.0.5"
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        mavenLocal()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+
 
 android {
     namespace = "com.example.ptplayer"
@@ -27,8 +35,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
         jvmTarget = "1.8"
@@ -38,7 +46,17 @@ android {
         enable = true
     }
 }
-
+afterEvaluate {
+    configure<PublishingExtension> {
+        publications {
+            create<MavenPublication>("myLibraryPublication") {
+                groupId = "com.github.prashant8196"
+                artifactId = "CustomPlayer"
+                version = "1.0.5"
+            }
+        }
+    }
+}
 
 dependencies {
 
@@ -56,9 +74,6 @@ dependencies {
 
     // For media playback using ExoPlayer
     implementation("androidx.media3:media3-exoplayer:$media3Version")
-
-    //For allowing jitpack to pick sdk from github
-   /* implementation("com.github.prashant8196:CustomPlayer:v1.0.0-alpha")*/
 
     // For DASH playback support with ExoPlayer
     implementation("androidx.media3:media3-exoplayer-dash:$media3Version")

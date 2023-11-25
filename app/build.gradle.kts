@@ -4,7 +4,7 @@ plugins {
     id("maven-publish")
 }
 group = "com.github.prashant8196"
-version = "1.0.1"
+version = "1.0.2"
 
 afterEvaluate {
     configure<PublishingExtension> {
@@ -12,7 +12,7 @@ afterEvaluate {
             create<MavenPublication>("myLibraryPublication") {
                 groupId = "com.example.customplayer"
                 artifactId = "media3-custom-player"
-                version = "1.0.1"
+                version = "1.0.2"
             }
         }
     }
@@ -60,6 +60,7 @@ dependencies {
     implementation("androidx.leanback:leanback:1.0.0")
     implementation("com.github.bumptech.glide:glide:4.14.2")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation(project(mapOf("path" to ":ptplayer")))
     val media3Version = "1.2.0"
 
     // For media playback using ExoPlayer

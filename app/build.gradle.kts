@@ -4,7 +4,7 @@ plugins {
     id("maven-publish")
 }
 group = "com.github.prashant8196"
-version = "1.0.2"
+version = "1.0.5"
 
 afterEvaluate {
     configure<PublishingExtension> {
@@ -12,7 +12,7 @@ afterEvaluate {
             create<MavenPublication>("myLibraryPublication") {
                 groupId = "com.example.customplayer"
                 artifactId = "media3-custom-player"
-                version = "1.0.2"
+                version = "1.0.5"
             }
         }
     }
@@ -27,7 +27,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

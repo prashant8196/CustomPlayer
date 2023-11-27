@@ -14,8 +14,8 @@
     android:layout_height="30dp"
     android:id="@+id/lltop"
     android:gravity="center"
-    android:visibility="gone"
     tools:visibility="visible"
+    android:visibility="gone"
     android:layout_marginStart="20dp"
     android:padding="1dp"
     android:layout_marginTop="20dp"
@@ -52,8 +52,8 @@
         android:layout_height="30dp"
         android:orientation="horizontal"
         android:gravity="center"
-        android:visibility="gone"
         tools:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -100,9 +100,9 @@
         android:layout_height="30dp"
         android:layout_marginStart="15dp"
         android:orientation="horizontal"
-        android:visibility="gone"
         tools:visibility="visible"
         android:padding="2dp"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -140,6 +140,7 @@
             android:id="@+id/ll_bottom_end"
             android:orientation="horizontal"
             android:gravity="end"
+            android:visibility="gone"
             android:layout_gravity="end">
 
             <ImageView

@@ -19,6 +19,8 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import androidx.media3.ui.PlayerView
+import com.example.ptplayer.databinding.CustomControlBinding
+import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
 import com.example.ptplayer.player.PlayerConstant.ALLOCATION_SIZE
 import com.example.ptplayer.player.PlayerConstant.BACKWARD_INCREMENT
 import com.example.ptplayer.player.PlayerConstant.BACK_BUFFER_DURATION
@@ -27,8 +29,6 @@ import com.example.ptplayer.player.PlayerConstant.BUFFER_FOR_PLAYBACK_AFTER_RE_B
 import com.example.ptplayer.player.PlayerConstant.FORWARD_INCREMENT
 import com.example.ptplayer.player.PlayerConstant.MAX_BUFFER_DURATION
 import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
-import com.example.ptplayer.databinding.CustomControlBinding
-import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
 
 @UnstableApi class PrashantCustomPlayer (
     private val context:AppCompatActivity,
@@ -36,7 +36,7 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
     defStyleAttr:Int) : FrameLayout(context,attrSet,defStyleAttr){
 
     private var mediaPlayer:ExoPlayer? =  null
-    private val mediaPlayerView:PlayerView? = null
+    private var mediaPlayerView:PlayerView? = null
     private var playerSdkCallBack: PlayerSdkCallBack? = null
     private var contentUrl: String? = null
     private var contentType: ContentType? = null
@@ -53,6 +53,7 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
         super.onFinishInflate()
         bindingPlayer = PrashantCustomPlayerBinding.inflate(LayoutInflater.from(context), this, true)
         bindingController = CustomControlBinding.inflate(LayoutInflater.from(context),this,true)
+        mediaPlayerView = bindingPlayer.mediaPlayerView
         setUpControlClickListeners()
     }
 
@@ -67,12 +68,12 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
                }
                bindingController.skipFwdBtn.id->{
                    val currentPosition = mediaPlayer?.currentPosition
-                   val nextPosition = currentPosition?.plus(10000)
+                   val nextPosition = currentPosition?.plus(FORWARD_INCREMENT)
                    mediaPlayer?.seekTo(nextPosition as Long)
                }
                bindingController.skipPreBtn.id->{
                    val currentPosition = mediaPlayer?.currentPosition
-                   val nextPosition = currentPosition?.minus(10000)
+                   val nextPosition = currentPosition?.minus(BACKWARD_INCREMENT)
                    mediaPlayer?.seekTo(nextPosition as Long)
                }
                bindingController.nextVideoBtn.id->{
@@ -99,19 +100,17 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
 
         val customLoadControl = getCustomLoadControl()
         val trackSelector = DefaultTrackSelector(context)
-        //trackSelector.parameters = DefaultTrackSelector.ParametersBuilder(context).setRendererDisabled(C.TRACK_TYPE_VIDEO,true).build()
         mediaPlayer = getMediaPLayerInstance(customLoadControl,trackSelector)
         mediaPlayer?.addListener(playerStateListener)
         mediaPlayerView?.player = mediaPlayer
         mediaPlayerView?.controllerHideOnTouch = true
         mediaPlayerView?.setControllerHideDuringAds(true)
         val isDrm = isDrmContent(contentUrl.toString())
-        val mediaItem = getMediaItem(drm = isDrm, videoUrl = contentUrl.toString())
+        val mediaItem = getMediaItem(drm = false, videoUrl = contentUrl.toString())
         mediaPlayer?.setMediaItem(mediaItem)
         mediaPlayer?.prepare()
-        if (instantPlay){
-            mediaPlayer?.playWhenReady = true
-        }
+        mediaPlayer?.playWhenReady = true
+        mediaPlayerView?.bringToFront()
     }
 
     private fun getMediaItem(drm: Boolean, videoUrl: String ,
@@ -123,7 +122,7 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
             .setUri(videoUrl)
             .setMediaMetadata(MediaMetadata.Builder().setTitle(contentTitle).build())
 
-        if (drm && !drmLicenseUrl.isNullOrEmpty()) {
+   /*     if (drm && !drmLicenseUrl.isNullOrEmpty()) {
             val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
                 .setLicenseUri(drmLicenseUrl)
                 .build()
@@ -133,7 +132,7 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
         if (!adsUrl.isNullOrEmpty()) {
             val adTagUri = Uri.parse(adsUrl)
             mediaItemBuilder.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(adTagUri).build())
-        }
+        }*/
 
         return mediaItemBuilder.build()
     }
@@ -157,19 +156,24 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
             .setLoadControl(customLoadControl)
             .setTrackSelector(trackSelector)
             .setSeekForwardIncrementMs(FORWARD_INCREMENT.toLong())
-            .setSeekForwardIncrementMs(BACKWARD_INCREMENT.toLong())
+            .setSeekBackIncrementMs(BACKWARD_INCREMENT.toLong())
             .build()
     }
 
     private var playerStateListener:Player.Listener = object :Player.Listener{
 
         override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
+
            when(playbackState){
 
                 Player.STATE_READY->{
 
                     playerSdkCallBack?.onBufferingEnded()
                     playerSdkCallBack?.onVideoStart()
+                    mediaPlayerView?.visibility = VISIBLE
+                    mediaPlayerView?.videoSurfaceView?.visibility = VISIBLE
+                    mediaPlayerView?.visibility = VISIBLE
+                    mediaPlayerView?.bringToFront()
                     //stop showing Buffering here
                }
 
@@ -198,10 +202,6 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
             playerSdkCallBack?.onPlayerError()
             super.onPlayerError(error)
         }
-
-        override fun onSurfaceSizeChanged(width: Int, height: Int) {
-            super.onSurfaceSizeChanged(width, height)
-        }
     }
 
     private fun isDrmContent(videoUrl:String) : Boolean{
@@ -219,7 +219,7 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
 
     fun pausePlayer(){
         if (mediaPlayer != null && mediaPlayerView != null){
-            mediaPlayerView.onPause()
+            mediaPlayerView?.onPause()
             mediaPlayer?.playWhenReady = false
             playerSdkCallBack?.onVideoStop()
         }
@@ -227,7 +227,7 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
 
     fun resumePlayer(){
         if (mediaPlayer != null && mediaPlayerView != null){
-            mediaPlayerView.onResume()
+            mediaPlayerView?.onResume()
             mediaPlayer?.playWhenReady = true
             playerSdkCallBack?.onVideoStart()
         }
@@ -236,7 +236,7 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
     fun releasePlayer(){
         if (mediaPlayer != null && mediaPlayerView != null){
             mediaPlayer?.release()
-            mediaPlayerView.player?.release()
+            mediaPlayerView?.player?.release()
             playerSdkCallBack?.onPlayerRelease()
         }
     }
@@ -251,5 +251,8 @@ import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
             this.contentTitle = contentTitle
         }
         this.contentId = contentId
+    }
+    fun setVideoPlayerSdkListener(playerSdkCallBack: PlayerSdkCallBack) {
+        this.playerSdkCallBack = playerSdkCallBack
     }
 }

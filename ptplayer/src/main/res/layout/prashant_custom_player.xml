@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:id="@+id/media_player_view"
         app:resize_mode="fill"
-        android:focusable="true"
+        app:surface_type="surface_view"
         app:controller_layout_id="@layout/custom_control"
         app:animation_enabled="false">
 

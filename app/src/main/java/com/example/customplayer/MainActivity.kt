@@ -3,6 +3,7 @@ package com.example.customplayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.annotation.OptIn
+import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
 import com.example.customplayer.databinding.ActivityMainBinding
 import com.example.ptplayer.player.ContentType
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity(),PlayerSdkCallBack {
     @OptIn(UnstableApi::class) override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val url = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8"
         binding.ptPlayer.setContentFilePath(url)
@@ -62,10 +64,12 @@ class MainActivity : AppCompatActivity(),PlayerSdkCallBack {
 
     override fun onBufferingStart() {
 
+        binding.buffer.isVisible = true
     }
 
     override fun onBufferingEnded() {
 
+        binding.buffer.isVisible = false
     }
 
     override fun onPlayBackProgress(position: Long, duration: Long) {
@@ -104,7 +108,9 @@ class MainActivity : AppCompatActivity(),PlayerSdkCallBack {
 
     }
 
-    override fun onPlayerBackPressed() {
+    @OptIn(UnstableApi::class) override fun onPlayerBackPressed() {
 
+        onBackPressed()
+        binding.ptPlayer.releasePlayer()
     }
 }

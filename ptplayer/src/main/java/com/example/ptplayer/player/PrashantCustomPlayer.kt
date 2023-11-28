@@ -4,7 +4,10 @@ import android.content.Context
 import android.net.Uri
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -19,8 +22,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import androidx.media3.ui.PlayerView
-import com.example.ptplayer.databinding.CustomControlBinding
-import com.example.ptplayer.databinding.PrashantCustomPlayerBinding
+import com.example.ptplayer.R
 import com.example.ptplayer.player.PlayerConstant.ALLOCATION_SIZE
 import com.example.ptplayer.player.PlayerConstant.BACKWARD_INCREMENT
 import com.example.ptplayer.player.PlayerConstant.BACK_BUFFER_DURATION
@@ -29,6 +31,12 @@ import com.example.ptplayer.player.PlayerConstant.BUFFER_FOR_PLAYBACK_AFTER_RE_B
 import com.example.ptplayer.player.PlayerConstant.FORWARD_INCREMENT
 import com.example.ptplayer.player.PlayerConstant.MAX_BUFFER_DURATION
 import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @UnstableApi class PrashantCustomPlayer (
     private val context:AppCompatActivity,
@@ -43,50 +51,100 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
     private var contentTitle:String? = null
     private var contentId:String? = null
     private var token:String? = null
-    private lateinit var bindingPlayer: PrashantCustomPlayerBinding
-    private lateinit var bindingController: CustomControlBinding
+
+    private var backButton:ImageView? = null
+    private var skipPre:ImageView? = null
+    private var playButton:ImageView? = null
+    private var skipFwd:ImageView? = null
+    private var preTrack:ImageView? = null
+    private var nextTrack:ImageView? = null
+    private var volumeIcon:ImageView? = null
+    private var settings:ImageView? = null
+    private var scrubImage:ImageView? = null
+    private val scrubber:CustomScrubber = CustomScrubber(context)
+    private var player_scrub:CustomScrubber? = null
+    private var job: Job? = null
+    private val scope = MainScope()
+
+    private var tvContentTitle:TextView? = null
         constructor(context:Context,attrs:AttributeSet) :this(
             context as AppCompatActivity,attrs,0
         )
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        bindingPlayer = PrashantCustomPlayerBinding.inflate(LayoutInflater.from(context), this, true)
-        bindingController = CustomControlBinding.inflate(LayoutInflater.from(context),this,true)
-        mediaPlayerView = bindingPlayer.mediaPlayerView
-        setUpControlClickListeners()
+        val view =
+            LayoutInflater.from(getContext()).inflate(R.layout.prashant_custom_player, this)
+        fetchAllId(view)
+        setUpControlClickListeners(view)
+        setClickListenerOnViews(::setUpControlClickListeners)
     }
 
-    private fun setUpControlClickListeners() {
-       bindingController.root.setOnClickListener { view->
+    private fun setClickListenerOnViews(kFunction1: (View) -> Unit) {
+
+        mediaPlayerView?.setOnClickListener(kFunction1)
+        backButton?.setOnClickListener(kFunction1)
+        skipFwd?.setOnClickListener(kFunction1)
+        skipPre?.setOnClickListener(kFunction1)
+        playButton?.setOnClickListener(kFunction1)
+        preTrack?.setOnClickListener(kFunction1)
+        nextTrack?.setOnClickListener(kFunction1)
+        volumeIcon?.setOnClickListener(kFunction1)
+        settings?.setOnClickListener(kFunction1)
+        scrubImage?.setOnClickListener(kFunction1)
+        player_scrub?.setOnClickListener(kFunction1)
+    }
+
+    private fun fetchAllId(view: View) {
+
+        mediaPlayerView = view.findViewById(R.id.media_player_view)
+        backButton=view.findViewById(R.id.iv_back)
+        skipFwd= view.findViewById(R.id.skip_fwd_btn)
+        skipPre= view.findViewById(R.id.skip_pre_btn)
+        playButton= view.findViewById(R.id.play_btn)
+        preTrack= view.findViewById(R.id.pre_video_btn)
+        nextTrack= view.findViewById(R.id.next_video_btn)
+        volumeIcon= view.findViewById(R.id.volume_btn)
+        settings= view.findViewById(R.id.iv_setting)
+        scrubImage= view.findViewById(R.id.imageView)
+        tvContentTitle = view.findViewById(R.id.content_title)
+        player_scrub = view.findViewById(R.id.player_scrub)
+
+
+    }
+
+    private fun setUpControlClickListeners(view:View) {
+       view.setOnClickListener { view->
            when(view.id) {
-               bindingController.playBtn.id->{
-                  resumePlayer()
+               R.id.play_btn->{
+                  //resumePlayer()
+                   pausePlayer()
                }
-               bindingController.ivBack.id ->{
+               R.id.iv_back ->{
                    playerSdkCallBack?.onPlayerBackPressed()
                }
-               bindingController.skipFwdBtn.id->{
+               R.id.skip_fwd_btn->{
                    val currentPosition = mediaPlayer?.currentPosition
                    val nextPosition = currentPosition?.plus(FORWARD_INCREMENT)
                    mediaPlayer?.seekTo(nextPosition as Long)
                }
-               bindingController.skipPreBtn.id->{
+               R.id.skip_pre_btn->{
                    val currentPosition = mediaPlayer?.currentPosition
                    val nextPosition = currentPosition?.minus(BACKWARD_INCREMENT)
                    mediaPlayer?.seekTo(nextPosition as Long)
                }
-               bindingController.nextVideoBtn.id->{
+               R.id.next_video_btn->{
                    playerSdkCallBack?.onPlayNextContent()
                }
-               bindingController.preVideoBtn.id->{
+               R.id.pre_video_btn->{
                    playerSdkCallBack?.onPlayPreviousContent()
                }
-               bindingController.ivMaximise.id->{
-                   playerSdkCallBack?.onFullScreenEnter()
-               }
-               bindingController.ivScale.id->{
 
+               R.id.player_scrub->{
+                   val progress = mediaPlayer?.duration?.let { mediaPlayer?.currentPosition?.toFloat()?.div(it) }
+                   if (progress != null) {
+                       mediaPlayer?.seekTo((progress * mediaPlayer?.duration!!).toLong())
+                   }
                }
            }
        }
@@ -104,12 +162,14 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
         mediaPlayer?.addListener(playerStateListener)
         mediaPlayerView?.player = mediaPlayer
         mediaPlayerView?.controllerHideOnTouch = true
+        mediaPlayerView?.keepScreenOn = true
         mediaPlayerView?.setControllerHideDuringAds(true)
         val isDrm = isDrmContent(contentUrl.toString())
-        val mediaItem = getMediaItem(drm = false, videoUrl = contentUrl.toString())
+        val mediaItem = getMediaItem(drm = isDrm, videoUrl = contentUrl.toString())
         mediaPlayer?.setMediaItem(mediaItem)
         mediaPlayer?.prepare()
         mediaPlayer?.playWhenReady = true
+        tvContentTitle?.text = contentTitle
         mediaPlayerView?.bringToFront()
     }
 
@@ -122,7 +182,7 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
             .setUri(videoUrl)
             .setMediaMetadata(MediaMetadata.Builder().setTitle(contentTitle).build())
 
-   /*     if (drm && !drmLicenseUrl.isNullOrEmpty()) {
+        if (drm && !drmLicenseUrl.isNullOrEmpty()) {
             val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
                 .setLicenseUri(drmLicenseUrl)
                 .build()
@@ -132,7 +192,7 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
         if (!adsUrl.isNullOrEmpty()) {
             val adTagUri = Uri.parse(adsUrl)
             mediaItemBuilder.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(adTagUri).build())
-        }*/
+        }
 
         return mediaItemBuilder.build()
     }
@@ -166,6 +226,7 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
 
            when(playbackState){
 
+
                 Player.STATE_READY->{
 
                     playerSdkCallBack?.onBufferingEnded()
@@ -174,6 +235,7 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
                     mediaPlayerView?.videoSurfaceView?.visibility = VISIBLE
                     mediaPlayerView?.visibility = VISIBLE
                     mediaPlayerView?.bringToFront()
+                    startUpdates()
                     //stop showing Buffering here
                }
 
@@ -182,11 +244,13 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
                    mediaPlayerView?.videoSurfaceView?.visibility = VISIBLE
                    mediaPlayerView?.visibility = VISIBLE
                    mediaPlayerView?.bringToFront()
+                   stopUpdates()
                }
 
                Player.STATE_BUFFERING->{
 
                    playerSdkCallBack?.onBufferingStart()
+                   stopUpdates()
                    //start showing buffering view here
                }
 
@@ -194,6 +258,7 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
 
                    //need to call onPlayNextVideo if it is part of series else onVideoStop
                    playerSdkCallBack?.onVideoStop()
+                   stopUpdates()
                }
            }
         }
@@ -201,6 +266,15 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
         override fun onPlayerError(error: PlaybackException) {
             playerSdkCallBack?.onPlayerError()
             super.onPlayerError(error)
+        }
+
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            updateScrubberPosition()
+            super.onPositionDiscontinuity(oldPosition, newPosition, reason)
         }
     }
 
@@ -254,5 +328,27 @@ import com.example.ptplayer.player.PlayerConstant.MIN_BUFFER_DURATION
     }
     fun setVideoPlayerSdkListener(playerSdkCallBack: PlayerSdkCallBack) {
         this.playerSdkCallBack = playerSdkCallBack
+    }
+
+    fun updateScrubberPosition(){
+     startUpdates()
+    }
+
+    private fun stopUpdates() {
+        job?.cancel()
+        job = null
+    }
+
+    private fun startUpdates() {
+        stopUpdates()
+        job = scope.launch {
+            while(true) {
+                val progress = mediaPlayer?.duration?.let { mediaPlayer?.currentPosition?.toFloat()?.div(it) }
+                withContext(Dispatchers.Main){
+                    scrubber.setProgress(progress as Float, mediaPlayer?.duration as Long)
+                }
+                delay(3000)
+            }
+        }
     }
 }

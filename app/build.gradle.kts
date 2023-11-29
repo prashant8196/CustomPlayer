@@ -47,6 +47,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.14.2")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation(project(mapOf("path" to ":ptplayer")))
+    implementation("androidx.media3:media3-common:1.2.0")
 
     //Testing Dependencies
     testImplementation("junit:junit:4.13.2")

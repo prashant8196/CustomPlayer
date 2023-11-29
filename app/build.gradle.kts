@@ -3,8 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("maven-publish")
 }
-group = "com.github.prashant8196"
-version = "1.0.7"
 
 android {
     namespace = "com.example.customplayer"
@@ -15,7 +13,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.6"
+        versionName = "1.0.9"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

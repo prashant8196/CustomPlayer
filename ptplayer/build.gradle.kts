@@ -20,7 +20,6 @@ android {
 
     defaultConfig {
         minSdk = 24
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -53,7 +52,7 @@ afterEvaluate {
             create<MavenPublication>("myLibraryPublication") {
                 groupId = "com.github.prashant8196"
                 artifactId = "CustomPlayer"
-                version = "1.0.5"
+                version = "1.0.7"
             }
         }
     }

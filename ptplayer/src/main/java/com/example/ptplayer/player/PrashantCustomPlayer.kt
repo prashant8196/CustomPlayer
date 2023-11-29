@@ -7,8 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -55,6 +58,7 @@ import kotlinx.coroutines.withContext
     private var backButton:ImageView? = null
     private var skipPre:ImageView? = null
     private var playButton:ImageView? = null
+    private var pauseButton:ImageView? = null
     private var skipFwd:ImageView? = null
     private var preTrack:ImageView? = null
     private var nextTrack:ImageView? = null
@@ -62,7 +66,11 @@ import kotlinx.coroutines.withContext
     private var settings:ImageView? = null
     private var scrubImage:ImageView? = null
     private val scrubber:CustomScrubber = CustomScrubber(context)
-    private var player_scrub:CustomScrubber? = null
+    private var playerScrub:CustomScrubber? = null
+    private var currentProgress:TextView? = null
+    private var totalProgress:TextView? = null
+    private var playerBuffer:LoadingView? = null
+    private var flPreview:FrameLayout? = null
     private var job: Job? = null
     private val scope = MainScope()
 
@@ -87,12 +95,13 @@ import kotlinx.coroutines.withContext
         skipFwd?.setOnClickListener(kFunction1)
         skipPre?.setOnClickListener(kFunction1)
         playButton?.setOnClickListener(kFunction1)
+        pauseButton?.setOnClickListener(kFunction1)
         preTrack?.setOnClickListener(kFunction1)
         nextTrack?.setOnClickListener(kFunction1)
         volumeIcon?.setOnClickListener(kFunction1)
         settings?.setOnClickListener(kFunction1)
         scrubImage?.setOnClickListener(kFunction1)
-        player_scrub?.setOnClickListener(kFunction1)
+        playerScrub?.setOnClickListener(kFunction1)
     }
 
     private fun fetchAllId(view: View) {
@@ -102,22 +111,28 @@ import kotlinx.coroutines.withContext
         skipFwd= view.findViewById(R.id.skip_fwd_btn)
         skipPre= view.findViewById(R.id.skip_pre_btn)
         playButton= view.findViewById(R.id.play_btn)
+        pauseButton= view.findViewById(R.id.pause_btn)
         preTrack= view.findViewById(R.id.pre_video_btn)
         nextTrack= view.findViewById(R.id.next_video_btn)
         volumeIcon= view.findViewById(R.id.volume_btn)
         settings= view.findViewById(R.id.iv_setting)
         scrubImage= view.findViewById(R.id.imageView)
         tvContentTitle = view.findViewById(R.id.content_title)
-        player_scrub = view.findViewById(R.id.player_scrub)
-
+        playerScrub = view.findViewById(R.id.player_scrub)
+        currentProgress = view.findViewById(R.id.current_progress)
+        totalProgress = view.findViewById(R.id.total_progress)
+        playerBuffer = view.findViewById(R.id.player_buffer)
+        flPreview = view.findViewById(R.id.previewFrameLayout)
 
     }
 
     private fun setUpControlClickListeners(view:View) {
-       view.setOnClickListener { view->
-           when(view.id) {
+       view.setOnClickListener { viewClicked->
+           when(viewClicked.id) {
                R.id.play_btn->{
-                  //resumePlayer()
+                  resumePlayer()
+               }
+               R.id.pause_btn->{
                    pausePlayer()
                }
                R.id.iv_back ->{
@@ -229,11 +244,13 @@ import kotlinx.coroutines.withContext
 
                 Player.STATE_READY->{
 
+                    hideLoadingView()
                     playerSdkCallBack?.onBufferingEnded()
                     playerSdkCallBack?.onVideoStart()
                     mediaPlayerView?.visibility = VISIBLE
                     mediaPlayerView?.videoSurfaceView?.visibility = VISIBLE
                     mediaPlayerView?.visibility = VISIBLE
+                    totalProgress?.text = convertMsToMinSec(mediaPlayer?.duration as Long)
                     mediaPlayerView?.bringToFront()
                     startUpdates()
                     //stop showing Buffering here
@@ -249,6 +266,7 @@ import kotlinx.coroutines.withContext
 
                Player.STATE_BUFFERING->{
 
+                   showLoadingView()
                    playerSdkCallBack?.onBufferingStart()
                    stopUpdates()
                    //start showing buffering view here
@@ -295,6 +313,8 @@ import kotlinx.coroutines.withContext
         if (mediaPlayer != null && mediaPlayerView != null){
             mediaPlayerView?.onPause()
             mediaPlayer?.playWhenReady = false
+            playButton?.isVisible = true
+            pauseButton?.isVisible = false
             playerSdkCallBack?.onVideoStop()
         }
     }
@@ -303,6 +323,8 @@ import kotlinx.coroutines.withContext
         if (mediaPlayer != null && mediaPlayerView != null){
             mediaPlayerView?.onResume()
             mediaPlayer?.playWhenReady = true
+            playButton?.isVisible = false
+            pauseButton?.isVisible = true
             playerSdkCallBack?.onVideoStart()
         }
     }
@@ -344,11 +366,29 @@ import kotlinx.coroutines.withContext
         job = scope.launch {
             while(true) {
                 val progress = mediaPlayer?.duration?.let { mediaPlayer?.currentPosition?.toFloat()?.div(it) }
+                currentProgress?.text = convertMsToMinSec(mediaPlayer?.currentPosition as Long)
                 withContext(Dispatchers.Main){
                     scrubber.setProgress(progress as Float, mediaPlayer?.duration as Long)
                 }
-                delay(3000)
+                delay(1000)
             }
         }
+    }
+
+    private fun convertMsToMinSec(ms:Long):String{
+
+        val minutes = (ms / (1000 * 60)) % 60
+        val seconds = (ms / 1000) % 60
+        return String.format("%02d:%02d", minutes, seconds)
+    }
+
+    private fun showLoadingView(){
+        playerBuffer?.isVisible = true
+
+    }
+
+    private fun hideLoadingView(){
+        playerBuffer?.isVisible = false
+
     }
 }

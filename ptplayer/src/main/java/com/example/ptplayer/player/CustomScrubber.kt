@@ -19,6 +19,7 @@ class CustomScrubber(context: Context, attrs: AttributeSet? = null, defStyleAttr
     )
 
     private val scrubberPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val scrubberLine = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private var progress = 0f
@@ -28,6 +29,7 @@ class CustomScrubber(context: Context, attrs: AttributeSet? = null, defStyleAttr
 
     init {
         scrubberPaint.color = Color.YELLOW
+        scrubberLine.color = Color.GRAY
         textPaint.color = Color.WHITE
         textPaint.textSize = 30f
         setOnTouchListener { _, event ->
@@ -45,6 +47,7 @@ class CustomScrubber(context: Context, attrs: AttributeSet? = null, defStyleAttr
 
                 setProgress(progress, duration)
                 onScrubListener?.invoke(progress)
+
             }
         }
     }
@@ -58,19 +61,31 @@ class CustomScrubber(context: Context, attrs: AttributeSet? = null, defStyleAttr
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        // Draw the scrubber line
+        // Draw the scrubber line in gray
         val scrubberHeight = height / 2
-        canvas.drawLine(0f, scrubberHeight.toFloat(), width.toFloat(), scrubberHeight.toFloat(), scrubberPaint)
+        canvas.drawLine(0f, scrubberHeight.toFloat(), width.toFloat(), scrubberHeight.toFloat(), scrubberLine)
 
-        // Draw the progress indicator
-        val indicatorX = progress * width
-        canvas.drawCircle(indicatorX, scrubberHeight.toFloat(), 10f, scrubberPaint)
+        // Draw the rest of the scrubber line in gray
+        scrubberPaint.color = Color.GRAY
+        canvas.drawRect(progress * width, 0f, width.toFloat(), height.toFloat(), scrubberPaint)
+
+        // Draw the progress indicator in yellow up to the progress
+        scrubberPaint.color = Color.parseColor("#FF8731")
+        val indicatorWidth = progress * width
+        canvas.drawRect(0f, 0f, indicatorWidth, height.toFloat(), scrubberPaint)
+
+        // Draw the small point circle to indicate the current playing position
+        scrubberPaint.color = Color.YELLOW
+        scrubberPaint.style = Paint.Style.FILL
+        val pointRadius = 10f
+        val pointX = indicatorWidth
+        canvas.drawCircle(pointX, scrubberHeight.toFloat(), pointRadius, scrubberPaint)
 
         // Draw the current duration text
         val currentTime = (progress * duration).toLong()
         val text = formatDuration(currentTime)
         val textWidth = textPaint.measureText(text)
-        val textX = indicatorX - textWidth / 2
+        val textX = indicatorWidth - textWidth / 2
         val textY = scrubberHeight.toFloat() - 20f // Adjust vertical position as needed
         canvas.drawText(text, textX, textY, textPaint)
     }

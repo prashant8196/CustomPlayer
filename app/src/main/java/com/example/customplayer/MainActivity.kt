@@ -64,12 +64,10 @@ class MainActivity : AppCompatActivity(),PlayerSdkCallBack {
 
     override fun onBufferingStart() {
 
-        binding.buffer.isVisible = true
     }
 
     override fun onBufferingEnded() {
 
-        binding.buffer.isVisible = false
     }
 
     override fun onPlayBackProgress(position: Long, duration: Long) {

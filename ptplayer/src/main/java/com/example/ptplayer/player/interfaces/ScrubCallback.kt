@@ -1,4 +1,4 @@
-package com.example.ptplayer.player
+package com.example.ptplayer.player.interfaces
 
 interface ScrubCallback {
 

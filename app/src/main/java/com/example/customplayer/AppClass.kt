@@ -3,7 +3,7 @@ package com.example.customplayer
 import android.content.Context
 import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
-import com.example.ptplayer.player.NukeSSLCertificates
+import com.example.ptplayer.player.utils.NukeSSLCertificates
 
 class AppClass:MultiDexApplication() {
     override fun onCreate() {

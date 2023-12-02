@@ -3,13 +3,12 @@ package com.example.customplayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.annotation.OptIn
-import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
 import com.example.customplayer.databinding.ActivityMainBinding
-import com.example.ptplayer.player.ContentType
-import com.example.ptplayer.player.PlayerSdkCallBack
+import com.example.ptplayer.player.constants.ContentType
+import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
 
-class MainActivity : AppCompatActivity(),PlayerSdkCallBack {
+class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
 
     @OptIn(UnstableApi::class) override fun onDestroy() {
         binding.ptPlayer.releasePlayer()
@@ -107,8 +106,6 @@ class MainActivity : AppCompatActivity(),PlayerSdkCallBack {
     }
 
     @OptIn(UnstableApi::class) override fun onPlayerBackPressed() {
-
-        onBackPressed()
         binding.ptPlayer.releasePlayer()
     }
 }

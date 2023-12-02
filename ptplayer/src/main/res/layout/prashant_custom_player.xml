@@ -2,6 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/fl_player"
+    android:layout_weight="1"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
@@ -16,5 +18,13 @@
         app:animation_enabled="false">
 
     </androidx.media3.ui.PlayerView>
+
+    <androidx.media3.ui.SubtitleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:id="@+id/exo_subtitle">
+
+    </androidx.media3.ui.SubtitleView>
 
 </FrameLayout>

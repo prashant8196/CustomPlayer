@@ -1,0 +1,14 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Grey background for the entire SeekBar -->
+    <item android:id="@android:id/background">
+        <color android:color="#CCCCCC" /> <!-- Replace with your desired grey color -->
+    </item>
+    <!-- Orange progress for the volume part -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <solid android:color="#FFA500" /> <!-- Replace with your desired orange color -->
+            </shape>
+        </clip>
+    </item>
+</layer-list>

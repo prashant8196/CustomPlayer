@@ -9,7 +9,7 @@
     android:background="#00FFFFFF"
     android:layoutDirection="ltr">
 
-    <com.example.ptplayer.player.LoadingView
+    <com.example.ptplayer.player.utils.LoadingView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
@@ -19,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-    </com.example.ptplayer.player.LoadingView>
+    </com.example.ptplayer.player.utils.LoadingView>
 
 <LinearLayout
     android:layout_width="match_parent"
@@ -39,8 +39,9 @@
     <ImageView
         android:id="@+id/iv_back"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:focusable="true"
+        android:layout_marginTop="3dp"
         android:clickable="true"
         android:padding="1dp"
         android:src="@drawable/playerback"
@@ -53,6 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:id="@+id/content_title"
+        android:gravity="top"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@color/white"
@@ -64,7 +66,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="40dp"
+        android:padding="3dp"
         android:orientation="horizontal"
         android:gravity="center"
         tools:visibility="visible"
@@ -78,7 +81,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:clickable="true"
-            android:padding="1dp"
+            android:padding="2dp"
             android:focusableInTouchMode="true"
             android:layout_marginHorizontal="5dp"
             android:id="@+id/skip_pre_btn"
@@ -92,7 +95,7 @@
             android:id="@+id/play_btn"
             android:clickable="true"
             android:layout_marginHorizontal="5dp"
-            android:padding="1dp"
+            android:padding="2dp"
             android:visibility="gone"
             android:src="@drawable/playicon"
             android:contentDescription="@string/play_the_video"
@@ -103,7 +106,7 @@
             android:id="@+id/pause_btn"
             android:clickable="true"
             android:layout_marginHorizontal="5dp"
-            android:padding="1dp"
+            android:padding="2dp"
             android:src="@drawable/baseline_pause_24"
             android:contentDescription="@string/play_the_video"
             android:focusable="true" />
@@ -115,7 +118,7 @@
             android:clickable="true"
             android:focusable="true"
             android:layout_marginHorizontal="5dp"
-            android:padding="1dp"
+            android:padding="2dp"
             android:src="@drawable/skipfwd"
             android:contentDescription="@string/skip_the_current_video_back_by_few_seconds" />
 
@@ -161,8 +164,23 @@
             android:padding="1dp"
             android:focusable="true"
             android:clickable="true"
-            android:src="@drawable/volumeplayer"
+            android:nextFocusRight="@id/iv_setting"
+            android:src="@drawable/volume_player"
             android:contentDescription="@string/volume_icon" />
+
+        <SeekBar
+            android:layout_width="100dp"
+            android:layout_height="2dp"
+            android:id="@+id/volume_seekbar"
+            android:visibility="visible"
+            android:clickable="false"
+            android:focusable="false"
+            android:background="@android:color/transparent"
+            android:progressDrawable="@drawable/custom_seekbar_progress"
+            android:thumb="@drawable/custom_thumb"
+            android:layout_gravity="center">
+
+        </SeekBar>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -179,6 +197,7 @@
                 android:id="@+id/iv_setting"
                 android:clickable="true"
                 android:focusable="true"
+                android:nextFocusLeft="@id/volume_btn"
                 android:padding="1dp"
                 android:src="@drawable/settings"
                 android:contentDescription="@string/click_to_open_settings"/>
@@ -186,17 +205,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:id="@+id/iv_scale"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="1dp"
-                android:src="@drawable/layoutscale"
-                android:contentDescription="@string/clickable_to_scale_the_player"/>
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:id="@+id/iv_maximise"
+                android:id="@+id/iv_screen_mode"
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="1dp"
@@ -225,7 +234,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:id="@+id/current_progress"
+            android:id="@id/exo_position"
             tools:text = "02:45">
 
         </TextView>
@@ -238,7 +247,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:id="@+id/total_progress"
+            android:id="@id/exo_duration"
             tools:text = "02:45">
 
         </TextView>
@@ -273,12 +282,19 @@
             android:scaleType="fitXY" />
     </FrameLayout>
 
-    <com.example.ptplayer.player.CustomScrubber
+    <androidx.media3.ui.DefaultTimeBar
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:clickable="true"
         android:focusable="true"
         android:paddingVertical="2dp"
+        app:scrubber_enabled_size="5dp"
+        app:buffered_color="#FFFF00"
+        app:scrubber_dragged_size="5dp"
+        app:touch_target_height="5dp"
+        app:played_color="@color/aol_secondary"
+        app:unplayed_color="@color/lb_grey"
+        app:scrubber_disabled_size="2dp"
         android:layout_marginHorizontal="30dp"
         android:layout_marginVertical="10dp"
         app:layout_constraintBottom_toTopOf="@+id/ll_bottom"
@@ -286,6 +302,6 @@
         app:layout_constraintStart_toStartOf="parent"
         android:id="@+id/player_scrub">
 
-    </com.example.ptplayer.player.CustomScrubber>
+    </androidx.media3.ui.DefaultTimeBar>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

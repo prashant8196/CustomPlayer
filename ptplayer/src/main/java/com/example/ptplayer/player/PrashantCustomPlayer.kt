@@ -8,6 +8,7 @@ import android.transition.ChangeBounds
 import android.transition.TransitionManager
 import android.util.AttributeSet
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,7 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.media3.common.C
@@ -86,6 +88,7 @@ import kotlinx.coroutines.withContext
     private var audioManager:AudioManager? = null
     private var screenMode:ImageView? = null
     private var isFullScreen:Int = 0
+    private var customControl:ConstraintLayout? = null
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -106,30 +109,61 @@ import kotlinx.coroutines.withContext
         }catch (e:Exception){
             e.printStackTrace()
         }
-        setClickListenerOnViews(::setUpControlClickListeners)
+
+        val focusChangeListener = OnFocusChangeListener { viewFocus, hasFocus ->
+            if (hasFocus) {
+                viewFocus.setBackgroundResource(R.drawable.circular_background)
+            } else {
+                viewFocus.setBackgroundResource(0)
+            }
+        }
+        setClickListenerOnViews()
+        setOnFocusListenerOnViews(focusChangeListener)
     }
 
-    private fun setClickListenerOnViews(kFunction1: (View) -> Unit) {
+    private fun setClickListenerOnViews() {
 
-        mediaPlayerView?.setOnClickListener(kFunction1)
-        backButton?.setOnClickListener(kFunction1)
-        skipFwd?.setOnClickListener(kFunction1)
-        skipPre?.setOnClickListener(kFunction1)
-        playButton?.setOnClickListener(kFunction1)
-        pauseButton?.setOnClickListener(kFunction1)
-        preTrack?.setOnClickListener(kFunction1)
-        nextTrack?.setOnClickListener(kFunction1)
-        volumeIcon?.setOnClickListener(kFunction1)
-        settings?.setOnClickListener(kFunction1)
-        scrubImage?.setOnClickListener(kFunction1)
-        screenMode?.setOnClickListener(kFunction1)
+        val enterKeyListener = OnKeyListener { view, keyCode, keyEvent ->
+            if (keyEvent.action == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER)) {
+                setUpControlClickListeners(view)
+                return@OnKeyListener true
+            }
+            false
+        }
+
+        mediaPlayerView?.setOnKeyListener(enterKeyListener)
+        skipFwd?.setOnKeyListener(enterKeyListener)
+        skipPre?.setOnKeyListener(enterKeyListener)
+        playButton?.setOnKeyListener(enterKeyListener)
+        pauseButton?.setOnKeyListener(enterKeyListener)
+        preTrack?.setOnKeyListener(enterKeyListener)
+        nextTrack?.setOnKeyListener(enterKeyListener)
+        volumeIcon?.setOnKeyListener(enterKeyListener)
+        settings?.setOnKeyListener(enterKeyListener)
+        scrubImage?.setOnKeyListener(enterKeyListener)
+        screenMode?.setOnKeyListener(enterKeyListener)
         playerScrub?.addListener(this)
+    }
+
+    private fun setOnFocusListenerOnViews(onFocusChangeListener: OnFocusChangeListener){
+
+        skipFwd?.onFocusChangeListener = onFocusChangeListener
+        skipPre?.onFocusChangeListener = onFocusChangeListener
+        playButton?.onFocusChangeListener = onFocusChangeListener
+        pauseButton?.onFocusChangeListener = onFocusChangeListener
+        preTrack?.onFocusChangeListener = onFocusChangeListener
+        nextTrack?.onFocusChangeListener = onFocusChangeListener
+        volumeIcon?.onFocusChangeListener = onFocusChangeListener
+        settings?.onFocusChangeListener = onFocusChangeListener
+        scrubImage?.onFocusChangeListener = onFocusChangeListener
+        screenMode?.onFocusChangeListener = onFocusChangeListener
+        playerScrub?.onFocusChangeListener = onFocusChangeListener
+
     }
 
     private fun fetchAllId(view: View) {
 
         mediaPlayerView = view.findViewById(R.id.media_player_view)
-        backButton = view.findViewById(R.id.iv_back)
         skipFwd = view.findViewById(R.id.skip_fwd_btn)
         skipPre = view.findViewById(R.id.skip_pre_btn)
         playButton = view.findViewById(R.id.play_btn)
@@ -145,12 +179,12 @@ import kotlinx.coroutines.withContext
         flPreview = view.findViewById(R.id.previewFrameLayout)
         volumeSeekBar = view.findViewById(R.id.volume_seekbar)
         screenMode = view.findViewById(R.id.iv_screen_mode)
+        customControl = view.findViewById(R.id.custom_control)
 
     }
 
     private fun setUpControlClickListeners(view: View) {
-        view.setOnClickListener { viewClicked ->
-            when (viewClicked.id) {
+            when (view.id) {
                 R.id.play_btn -> {
                     resumePlayer()
                 }
@@ -159,9 +193,6 @@ import kotlinx.coroutines.withContext
                     pausePlayer()
                 }
 
-                R.id.iv_back -> {
-                    playerSdkCallBack?.onPlayerBackPressed()
-                }
 
                 R.id.skip_fwd_btn -> {
                     val currentPosition = mediaPlayer?.currentPosition
@@ -194,7 +225,6 @@ import kotlinx.coroutines.withContext
                     }
                 }
             }
-        }
     }
 
     private fun initializePlayer(instantPlay: Boolean) {
@@ -342,6 +372,7 @@ import kotlinx.coroutines.withContext
             mediaPlayerView?.onPause()
             mediaPlayer?.playWhenReady = false
             playButton?.isVisible = true
+            playButton?.requestFocus()
             pauseButton?.isVisible = false
             playerSdkCallBack?.onVideoStop()
         }
@@ -353,6 +384,7 @@ import kotlinx.coroutines.withContext
             mediaPlayer?.playWhenReady = true
             playButton?.isVisible = false
             pauseButton?.isVisible = true
+            pauseButton?.requestFocus()
             playerSdkCallBack?.onVideoStart()
         }
     }

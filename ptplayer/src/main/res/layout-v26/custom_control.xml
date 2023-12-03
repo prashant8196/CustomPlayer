@@ -40,7 +40,9 @@
         android:id="@+id/iv_back"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:focusable="true"
         android:layout_marginTop="3dp"
+        android:clickable="true"
         android:padding="1dp"
         android:src="@drawable/playerback"
         android:contentDescription="@string/move_back_from_video_player">
@@ -290,7 +292,6 @@
         app:scrubber_enabled_size="5dp"
         app:buffered_color="#FFFF00"
         app:scrubber_dragged_size="5dp"
-        android:defaultFocusHighlightEnabled="true"
         app:touch_target_height="5dp"
         app:played_color="@color/aol_secondary"
         app:unplayed_color="@color/lb_grey"
@@ -300,8 +301,7 @@
         app:layout_constraintBottom_toTopOf="@+id/ll_bottom"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:id="@+id/player_scrub"
-        tools:targetApi="o">
+        android:id="@+id/player_scrub">
 
     </androidx.media3.ui.DefaultTimeBar>
 

@@ -17,4 +17,17 @@
 
     </com.example.ptplayer.player.PrashantCustomPlayer>
 
+    <com.example.ptplayer.player.utils.LoadingView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:id="@+id/player_buffer">
+
+    </com.example.ptplayer.player.utils.LoadingView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

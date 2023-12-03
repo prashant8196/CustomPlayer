@@ -13,7 +13,7 @@ class LoadingView @JvmOverloads constructor(
     private val binding: LayoutLoadingBinding =
         LayoutLoadingBinding.inflate(LayoutInflater.from(context), this, true)
 
-    fun setLoadingTitle(string: String) {
+  /*  fun setLoadingTitle(string: String) {
         with(binding) {
             tvMessage.isVisible = string.isNotBlank()
             if (string.isBlank()) {
@@ -21,5 +21,5 @@ class LoadingView @JvmOverloads constructor(
             }
             tvMessage.text = string
         }
-    }
+    }*/
 }

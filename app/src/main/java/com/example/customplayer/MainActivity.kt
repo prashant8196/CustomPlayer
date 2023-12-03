@@ -3,6 +3,7 @@ package com.example.customplayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.annotation.OptIn
+import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
 import com.example.customplayer.databinding.ActivityMainBinding
 import com.example.ptplayer.player.constants.ContentType
@@ -63,10 +64,11 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
 
     override fun onBufferingStart() {
 
+        binding.playerBuffer.isVisible = true
     }
 
     override fun onBufferingEnded() {
-
+        binding.playerBuffer.isVisible = false
     }
 
     override fun onPlayBackProgress(position: Long, duration: Long) {

@@ -2,6 +2,7 @@ package com.example.ptplayer.player
 
 import android.content.Context
 import android.content.Context.AUDIO_SERVICE
+import android.graphics.PorterDuff
 import android.media.AudioManager
 import android.net.Uri
 import android.transition.ChangeBounds
@@ -18,6 +19,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.media3.common.C
@@ -70,7 +72,6 @@ import kotlinx.coroutines.withContext
     private var contentId: String? = null
     private var token: String? = null
 
-    private var backButton: ImageView? = null
     private var skipPre: ImageView? = null
     private var playButton: ImageView? = null
     private var pauseButton: ImageView? = null
@@ -112,9 +113,10 @@ import kotlinx.coroutines.withContext
 
         val focusChangeListener = OnFocusChangeListener { viewFocus, hasFocus ->
             if (hasFocus) {
-                viewFocus.setBackgroundResource(R.drawable.circular_background)
+                val color = ContextCompat.getColor(context, R.color.aol_secondary)
+                (viewFocus as? ImageView)?.setColorFilter(color, PorterDuff.Mode.SRC_IN)
             } else {
-                viewFocus.setBackgroundResource(0)
+                (viewFocus as? ImageView)?.colorFilter = null
             }
         }
         setClickListenerOnViews()
@@ -192,7 +194,6 @@ import kotlinx.coroutines.withContext
                 R.id.pause_btn -> {
                     pausePlayer()
                 }
-
 
                 R.id.skip_fwd_btn -> {
                     val currentPosition = mediaPlayer?.currentPosition

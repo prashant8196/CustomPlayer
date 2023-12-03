@@ -6,16 +6,6 @@
     android:gravity="center"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvMessage"
-        android:textStyle="bold"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:paddingHorizontal="30dp"
-        android:paddingVertical="20dp"
-        tools:text="Loading..." />
-
     <ProgressBar
         android:id="@+id/pb"
         android:layout_width="50dp"

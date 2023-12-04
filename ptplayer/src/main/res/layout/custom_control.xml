@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        android:id="@+id/player_buffer"
+        android:id="@+id/exo_buffering"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -140,7 +140,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:src="@drawable/preback"
-            android:id="@+id/pre_video_btn"
+            android:id="@+id/exo_prev"
             android:clickable="true"
             android:focusable="true"
             android:padding="1dp"
@@ -149,7 +149,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:id="@+id/next_video_btn"
+            android:id="@+id/exo_next"
             android:clickable="true"
             android:focusable="true"
             android:padding="1dp"
@@ -163,7 +163,7 @@
             android:padding="1dp"
             android:focusable="true"
             android:clickable="true"
-            android:nextFocusRight="@id/iv_setting"
+            android:nextFocusRight="@id/exo_settings"
             android:src="@drawable/volume_player"
             android:contentDescription="@string/volume_icon" />
 
@@ -193,7 +193,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:id="@+id/iv_setting"
+                android:id="@+id/exo_settings"
                 android:clickable="true"
                 android:focusable="true"
                 android:nextFocusLeft="@id/volume_btn"

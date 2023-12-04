@@ -42,4 +42,6 @@ interface PlayerSdkCallBack {
 
     fun onPlayerBackPressed()
 
+    fun onThrowCustomError(error:String)
+
 }

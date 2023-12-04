@@ -23,7 +23,9 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         setContentView(binding.root)
 
         val url = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8"
+        val sprite = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.jpg"
         binding.ptPlayer.setContentFilePath(url)
+       /* binding.ptPlayer.setSpriteData(sprite,true)*/
         binding.ptPlayer.setContentMetaData(ContentType.VOD,"Sample","11634")
         binding.ptPlayer.setVideoPlayerSdkListener(this)
         binding.ptPlayer.startPlayer()
@@ -109,5 +111,9 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
 
     @OptIn(UnstableApi::class) override fun onPlayerBackPressed() {
         binding.ptPlayer.releasePlayer()
+    }
+
+    override fun onThrowCustomError(error: String) {
+
     }
 }

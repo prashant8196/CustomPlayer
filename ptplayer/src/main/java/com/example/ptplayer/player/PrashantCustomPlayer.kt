@@ -2,17 +2,18 @@ package com.example.ptplayer.player
 
 import android.content.Context
 import android.content.Context.AUDIO_SERVICE
+import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.media.AudioManager
 import android.net.Uri
-import android.transition.ChangeBounds
-import android.transition.TransitionManager
+import android.text.TextUtils
 import android.util.AttributeSet
-import android.view.Gravity
+import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.view.View.OnFocusChangeListener
+import android.view.View.OnKeyListener
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -20,7 +21,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -39,6 +39,8 @@ import androidx.media3.ui.DefaultTimeBar
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
 import androidx.media3.ui.TimeBar.OnScrubListener
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.Target
 import com.example.ptplayer.R
 import com.example.ptplayer.player.constants.ContentType
 import com.example.ptplayer.player.constants.PlayerConstant.ALLOCATION_SIZE
@@ -47,11 +49,16 @@ import com.example.ptplayer.player.constants.PlayerConstant.BACK_BUFFER_DURATION
 import com.example.ptplayer.player.constants.PlayerConstant.BUFFER_FOR_PLAYBACK
 import com.example.ptplayer.player.constants.PlayerConstant.BUFFER_FOR_PLAYBACK_AFTER_RE_BUFFER
 import com.example.ptplayer.player.constants.PlayerConstant.FORWARD_INCREMENT
+import com.example.ptplayer.player.constants.PlayerConstant.INVALID_CONTENT_ID
 import com.example.ptplayer.player.constants.PlayerConstant.MAX_BUFFER_DURATION
 import com.example.ptplayer.player.constants.PlayerConstant.MIN_BUFFER_DURATION
 import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
+import com.example.ptplayer.player.utils.GlideThumbnailTransformation
 import com.example.ptplayer.player.utils.LoadingView
+import com.example.ptplayer.player.utils.convertSpriteData
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
@@ -82,7 +89,6 @@ import kotlinx.coroutines.withContext
     private var settings: ImageView? = null
     private var scrubImage: ImageView? = null
     private var playerScrub: DefaultTimeBar? = null
-    private var playerBuffer: LoadingView? = null
     private var flPreview: FrameLayout? = null
     private var tvContentTitle: TextView? = null
     private var volumeSeekBar:SeekBar? = null
@@ -90,6 +96,9 @@ import kotlinx.coroutines.withContext
     private var screenMode:ImageView? = null
     private var isFullScreen:Int = 0
     private var customControl:ConstraintLayout? = null
+    private var spriteData : Bitmap? = null
+    private var spriteUrl:String? = null
+    private var previewFL:FrameLayout? = null
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -126,7 +135,10 @@ import kotlinx.coroutines.withContext
     private fun setClickListenerOnViews() {
 
         val enterKeyListener = OnKeyListener { view, keyCode, keyEvent ->
-            if (keyEvent.action == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER)) {
+            if (keyEvent.action == KeyEvent.ACTION_DOWN &&
+                (keyCode == KeyEvent.KEYCODE_ENTER ||
+                        keyCode == KeyEvent.KEYCODE_DPAD_CENTER)
+                ) {
                 setUpControlClickListeners(view)
                 return@OnKeyListener true
             }
@@ -170,18 +182,17 @@ import kotlinx.coroutines.withContext
         skipPre = view.findViewById(R.id.skip_pre_btn)
         playButton = view.findViewById(R.id.play_btn)
         pauseButton = view.findViewById(R.id.pause_btn)
-        preTrack = view.findViewById(R.id.pre_video_btn)
-        nextTrack = view.findViewById(R.id.next_video_btn)
         volumeIcon = view.findViewById(R.id.volume_btn)
-        settings = view.findViewById(R.id.iv_setting)
         scrubImage = view.findViewById(R.id.imageView)
         tvContentTitle = view.findViewById(R.id.content_title)
         playerScrub = view.findViewById(R.id.player_scrub)
-        playerBuffer = view.findViewById(R.id.player_buffer)
         flPreview = view.findViewById(R.id.previewFrameLayout)
         volumeSeekBar = view.findViewById(R.id.volume_seekbar)
-        screenMode = view.findViewById(R.id.iv_screen_mode)
         customControl = view.findViewById(R.id.custom_control)
+        preTrack = view.findViewById(R.id.exo_prev)
+        nextTrack = view.findViewById(R.id.exo_next)
+        settings = view.findViewById(R.id.exo_settings)
+        screenMode = view.findViewById(R.id.iv_screen_mode)
 
     }
 
@@ -207,14 +218,6 @@ import kotlinx.coroutines.withContext
                     mediaPlayer?.seekTo(nextPosition as Long)
                 }
 
-                R.id.next_video_btn -> {
-                    playerSdkCallBack?.onPlayNextContent()
-                }
-
-                R.id.pre_video_btn -> {
-                    playerSdkCallBack?.onPlayPreviousContent()
-                }
-
                 R.id.iv_screen_mode ->{
 
                     if (isFullScreen == 0){
@@ -228,27 +231,33 @@ import kotlinx.coroutines.withContext
             }
     }
 
-    private fun initializePlayer(instantPlay: Boolean) {
+    private fun initializePlayer() {
 
         if (mediaPlayer != null) {
             mediaPlayer?.release()
         }
+        if (contentUrl?.isNotEmpty() == true){
 
-        val customLoadControl = getCustomLoadControl()
-        val trackSelector = DefaultTrackSelector(context)
-        mediaPlayer = getMediaPLayerInstance(customLoadControl, trackSelector)
-        mediaPlayer?.addListener(playerStateListener)
-        mediaPlayerView?.player = mediaPlayer
-        mediaPlayerView?.controllerHideOnTouch = true
-        mediaPlayerView?.keepScreenOn = true
-        mediaPlayerView?.setControllerHideDuringAds(true)
-        val isDrm = isDrmContent(contentUrl.toString())
-        val mediaItem = getMediaItem(drm = isDrm, videoUrl = contentUrl.toString())
-        mediaPlayer?.setMediaItem(mediaItem)
-        mediaPlayer?.prepare()
-        mediaPlayer?.playWhenReady = true
-        tvContentTitle?.text = contentTitle
+            val customLoadControl = getCustomLoadControl()
+            val trackSelector = DefaultTrackSelector(context)
+            mediaPlayer = getMediaPLayerInstance(customLoadControl, trackSelector)
+            mediaPlayer?.addListener(playerStateListener)
+            mediaPlayerView?.player = mediaPlayer
+            mediaPlayerView?.controllerHideOnTouch = true
+            mediaPlayerView?.keepScreenOn = true
+            mediaPlayerView?.setControllerHideDuringAds(true)
+            val isDrm = isDrmContent(contentUrl.toString())
+            val mediaItem = getMediaItem(drm = isDrm, videoUrl = contentUrl.toString())
+            mediaPlayer?.setMediaItem(mediaItem)
+            mediaPlayer?.prepare()
+            mediaPlayer?.playWhenReady = true
+            tvContentTitle?.text = contentTitle
 
+        }else{
+
+            playerSdkCallBack?.onThrowCustomError(INVALID_CONTENT_ID)
+
+        }
     }
 
     private fun getMediaItem(
@@ -322,7 +331,6 @@ import kotlinx.coroutines.withContext
                     }
                     playerScrub?.setPosition(mediaPlayer?.currentPosition as Long)
                     mediaPlayerView?.bringToFront()
-                    hideLoadingView()
                 }
 
                 Player.STATE_IDLE -> {
@@ -332,7 +340,6 @@ import kotlinx.coroutines.withContext
 
                 Player.STATE_BUFFERING -> {
                     stopUpdates()
-                    showLoadingView()
                     playerSdkCallBack?.onBufferingStart()
                     //start showing buffering view here
                 }
@@ -365,7 +372,7 @@ import kotlinx.coroutines.withContext
     }
 
     fun startPlayer() {
-        initializePlayer(true)
+        initializePlayer()
     }
 
     fun pausePlayer() {
@@ -433,27 +440,31 @@ import kotlinx.coroutines.withContext
         return String.format("%02d:%02d", minutes, seconds)
     }
 
-    private fun showLoadingView() {
-        playerBuffer?.isVisible = true
-
-    }
-
-    private fun hideLoadingView() {
-        playerBuffer?.isVisible = false
-
-    }
-
     override fun onScrubStart(timeBar: TimeBar, position: Long) {
         mediaPlayer?.pause()
+        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
+            flPreview as FrameLayout)
     }
 
     override fun onScrubMove(timeBar: TimeBar, position: Long) {
-        //need to implement method for scrub image
+        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
+            flPreview as FrameLayout)
+
     }
 
     override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
 
+        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
+            flPreview as FrameLayout)
+
         if (!canceled){
+            flPreview?.isVisible = false
             mediaPlayer?.seekTo(position)
             mediaPlayer?.play()
         }
@@ -483,5 +494,55 @@ import kotlinx.coroutines.withContext
     private fun setFullScreenPlayerLayout() {
         playerSdkCallBack?.onFullScreenEnter()
 
+    }
+    @OptIn(DelicateCoroutinesApi::class)
+    fun setSpriteData(spriteUrl : String, toLoadFromBitmap:Boolean){
+
+        if (toLoadFromBitmap){
+            GlobalScope.launch {
+                try {
+                    spriteData =  convertSpriteData(spriteUrl)
+                } catch (ex: Exception) {
+                    Log.e("ExampleUsage", "Exception: $ex")
+                }
+            }
+
+        }else{
+            this.spriteUrl = spriteUrl
+        }
+    }
+    private fun loadSprite(position: Long, maxLine:Int){
+
+        flPreview?.isVisible  = true
+        if (spriteData != null) {
+            Glide.with(scrubImage as ImageView).load(spriteData)
+                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).fitCenter()
+                .transform(GlideThumbnailTransformation(position, maxLine))
+                .into(scrubImage as ImageView)
+        } else {
+            if (!TextUtils.isEmpty(spriteUrl)) {
+                Glide.with(scrubImage as ImageView).load(spriteUrl)
+                    .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).fitCenter()
+                    .transform(GlideThumbnailTransformation(position, maxLine))
+                    .into(scrubImage as ImageView)
+            } else {
+
+                flPreview?.isVisible  = false
+            }
+        }
+    }
+    private fun updatePreviewPosition(
+        scrubPosition: Int,
+        maxPosition: Int,
+        previewLayout: FrameLayout
+    ) {
+
+        val positionPercent = scrubPosition.toFloat() / maxPosition.toFloat()
+        val newHorizontalBias = positionPercent * (1 - 0.35)
+
+        val layoutParams = previewLayout.layoutParams as ConstraintLayout.LayoutParams
+        layoutParams.horizontalBias = newHorizontalBias.toFloat()
+        previewLayout.layoutParams = layoutParams
+        previewLayout.requestLayout()
     }
 }

@@ -18,4 +18,6 @@ object PlayerConstant {
 
     const val BACKWARD_INCREMENT = 10000
 
+    const val INVALID_CONTENT_ID = "Content Info Not Found"
+
 }

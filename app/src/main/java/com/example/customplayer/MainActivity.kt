@@ -2,6 +2,7 @@ package com.example.customplayer
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
@@ -16,17 +17,23 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         super.onDestroy()
     }
 
+    @OptIn(UnstableApi::class) override fun onStop() {
+        binding.ptPlayer.releasePlayer()
+        super.onStop()
+    }
+
     private lateinit var binding:ActivityMainBinding
     @OptIn(UnstableApi::class) override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val url = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8"
+        val url = "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp3"
         val sprite = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.jpg"
         binding.ptPlayer.setContentFilePath(url)
-       /* binding.ptPlayer.setSpriteData(sprite,true)*/
-        binding.ptPlayer.setContentMetaData(ContentType.VOD,"Sample","11634")
+        binding.ptPlayer.setBgImage(url = "https://altb-img.multitvsolution.com/multitv/content/1061_651bac882efbe_854x480.jpg",null)
+        binding.ptPlayer.setSpriteData(sprite,false)
+        binding.ptPlayer.setContentMetaData(ContentType.AUD,"Sample","11634")
         binding.ptPlayer.setVideoPlayerSdkListener(this)
         binding.ptPlayer.startPlayer()
 
@@ -113,7 +120,23 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         binding.ptPlayer.releasePlayer()
     }
 
+    override fun onSettingClicked() {
+        Toast.makeText(this,"Setting Clicked",Toast.LENGTH_SHORT).show()
+    }
+
     override fun onThrowCustomError(error: String) {
+
+    }
+
+    override fun onMoreOptionClicked() {
+
+    }
+
+    override fun onShuffleClicked(state: Boolean) {
+
+    }
+
+    override fun onRepeatClicked() {
 
     }
 }

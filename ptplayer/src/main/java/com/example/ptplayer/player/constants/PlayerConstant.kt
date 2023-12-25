@@ -20,4 +20,6 @@ object PlayerConstant {
 
     const val INVALID_CONTENT_ID = "Content Info Not Found"
 
+    const val MPD ="mpd"
+
 }

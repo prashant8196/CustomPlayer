@@ -1,4 +1,4 @@
-package com.example.ptplayer.player
+package com.example.ptplayer.player.player
 
 import android.content.Context
 import android.content.Context.AUDIO_SERVICE
@@ -52,9 +52,9 @@ import com.example.ptplayer.player.constants.PlayerConstant.FORWARD_INCREMENT
 import com.example.ptplayer.player.constants.PlayerConstant.INVALID_CONTENT_ID
 import com.example.ptplayer.player.constants.PlayerConstant.MAX_BUFFER_DURATION
 import com.example.ptplayer.player.constants.PlayerConstant.MIN_BUFFER_DURATION
+import com.example.ptplayer.player.constants.PlayerConstant.MPD
 import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
 import com.example.ptplayer.player.utils.GlideThumbnailTransformation
-import com.example.ptplayer.player.utils.LoadingView
 import com.example.ptplayer.player.utils.convertSpriteData
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -65,10 +65,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@UnstableApi class PrashantCustomPlayer (
-    private val context:AppCompatActivity,
-    attrSet:AttributeSet,
-    defStyleAttr:Int) : FrameLayout(context,attrSet,defStyleAttr),OnScrubListener {
+@UnstableApi
+class PrashantAudioPlayer(
+    private val context: AppCompatActivity, attrSet: AttributeSet, defStyleAttr: Int
+) : FrameLayout(context, attrSet, defStyleAttr), OnScrubListener {
 
     private var mediaPlayer: ExoPlayer? = null
     private var mediaPlayerView: PlayerView? = null
@@ -78,7 +78,8 @@ import kotlinx.coroutines.withContext
     private var contentTitle: String? = null
     private var contentId: String? = null
     private var token: String? = null
-
+    private var adUrl: String? = null
+    private var moreOptionButton: ImageView? = null
     private var skipPre: ImageView? = null
     private var playButton: ImageView? = null
     private var pauseButton: ImageView? = null
@@ -91,32 +92,36 @@ import kotlinx.coroutines.withContext
     private var playerScrub: DefaultTimeBar? = null
     private var flPreview: FrameLayout? = null
     private var tvContentTitle: TextView? = null
-    private var volumeSeekBar:SeekBar? = null
-    private var audioManager:AudioManager? = null
-    private var screenMode:ImageView? = null
-    private var isFullScreen:Int = 0
-    private var customControl:ConstraintLayout? = null
-    private var spriteData : Bitmap? = null
-    private var spriteUrl:String? = null
-    private var previewFL:FrameLayout? = null
+    private var volumeSeekBar: SeekBar? = null
+    private var audioManager: AudioManager? = null
+    private var screenMode: ImageView? = null
+    private var isFullScreen: Int = 0
+    private var customControl: ConstraintLayout? = null
+    private var spriteData: Bitmap? = null
+    private var spriteUrl: String? = null
+    private var shuffleIcon: ImageView? = null
+    private var repeatIcon: ImageView? = null
+    private var bannerIcon: ImageView? = null
+    private var shuffleState:Boolean? = false
 
     private var job: Job? = null
     private val scope = MainScope()
+
     constructor(context: Context, attrs: AttributeSet) : this(
         context as AppCompatActivity, attrs, 0
     )
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        val view =
-            LayoutInflater.from(getContext()).inflate(R.layout.prashant_custom_player, this)
+        val view = LayoutInflater.from(getContext()).inflate(R.layout.prashant_audio_player, this)
         fetchAllId(view)
+        setClickListenerOnViews()
         setUpControlClickListeners(view)
         audioManager = context.getSystemService(AUDIO_SERVICE) as AudioManager
         volumeSeekBar?.max = audioManager?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) as Int
         try {
             volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        }catch (e:Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
 
@@ -128,17 +133,13 @@ import kotlinx.coroutines.withContext
                 (viewFocus as? ImageView)?.colorFilter = null
             }
         }
-        setClickListenerOnViews()
         setOnFocusListenerOnViews(focusChangeListener)
     }
 
     private fun setClickListenerOnViews() {
 
         val enterKeyListener = OnKeyListener { view, keyCode, keyEvent ->
-            if (keyEvent.action == KeyEvent.ACTION_DOWN &&
-                (keyCode == KeyEvent.KEYCODE_ENTER ||
-                        keyCode == KeyEvent.KEYCODE_DPAD_CENTER)
-                ) {
+            if (keyEvent.action == KeyEvent.ACTION_DOWN && (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER)) {
                 setUpControlClickListeners(view)
                 return@OnKeyListener true
             }
@@ -157,9 +158,12 @@ import kotlinx.coroutines.withContext
         scrubImage?.setOnKeyListener(enterKeyListener)
         screenMode?.setOnKeyListener(enterKeyListener)
         playerScrub?.addListener(this)
+        moreOptionButton?.setOnKeyListener(enterKeyListener)
+        shuffleIcon?.setOnKeyListener(enterKeyListener)
+        repeatIcon?.setOnKeyListener(enterKeyListener)
     }
 
-    private fun setOnFocusListenerOnViews(onFocusChangeListener: OnFocusChangeListener){
+    private fun setOnFocusListenerOnViews(onFocusChangeListener: OnFocusChangeListener) {
 
         skipFwd?.onFocusChangeListener = onFocusChangeListener
         skipPre?.onFocusChangeListener = onFocusChangeListener
@@ -172,6 +176,9 @@ import kotlinx.coroutines.withContext
         scrubImage?.onFocusChangeListener = onFocusChangeListener
         screenMode?.onFocusChangeListener = onFocusChangeListener
         playerScrub?.onFocusChangeListener = onFocusChangeListener
+        shuffleIcon?.onFocusChangeListener = onFocusChangeListener
+        repeatIcon?.onFocusChangeListener = onFocusChangeListener
+        moreOptionButton?.onFocusChangeListener = onFocusChangeListener
 
     }
 
@@ -193,42 +200,63 @@ import kotlinx.coroutines.withContext
         nextTrack = view.findViewById(R.id.exo_next)
         settings = view.findViewById(R.id.exo_settings)
         screenMode = view.findViewById(R.id.iv_screen_mode)
+        moreOptionButton = view.findViewById(R.id.exo_more)
+        shuffleIcon = view.findViewById(R.id.exo_shuffle)
+        repeatIcon = view.findViewById(R.id.exo_repeat)
+        bannerIcon = view.findViewById(R.id.backgroundBanner)
 
     }
 
     private fun setUpControlClickListeners(view: View) {
-            when (view.id) {
-                R.id.play_btn -> {
-                    resumePlayer()
-                }
+        when (view.id) {
+            R.id.play_btn -> {
+                resumePlayer()
+            }
 
-                R.id.pause_btn -> {
-                    pausePlayer()
-                }
+            R.id.pause_btn -> {
+                pausePlayer()
+            }
 
-                R.id.skip_fwd_btn -> {
-                    val currentPosition = mediaPlayer?.currentPosition
-                    val nextPosition = currentPosition?.plus(FORWARD_INCREMENT)
-                    mediaPlayer?.seekTo(nextPosition as Long)
-                }
+            R.id.skip_fwd_btn -> {
+                val currentPosition = mediaPlayer?.currentPosition
+                val nextPosition = currentPosition?.plus(FORWARD_INCREMENT)
+                mediaPlayer?.seekTo(nextPosition as Long)
+            }
 
-                R.id.skip_pre_btn -> {
-                    val currentPosition = mediaPlayer?.currentPosition
-                    val nextPosition = currentPosition?.minus(BACKWARD_INCREMENT)
-                    mediaPlayer?.seekTo(nextPosition as Long)
-                }
+            R.id.skip_pre_btn -> {
+                val currentPosition = mediaPlayer?.currentPosition
+                val nextPosition = currentPosition?.minus(BACKWARD_INCREMENT)
+                mediaPlayer?.seekTo(nextPosition as Long)
+            }
 
-                R.id.iv_screen_mode ->{
+            R.id.iv_screen_mode -> {
 
-                    if (isFullScreen == 0){
-                        isFullScreen = 1
-                        setFullScreenPlayerLayout()
-                    }else{
-                        isFullScreen =0
-                        setMiniPlayerLayout()
-                    }
+                if (isFullScreen == 0) {
+                    isFullScreen = 1
+                    setFullScreenPlayerLayout()
+                } else {
+                    isFullScreen = 0
+                    setMiniPlayerLayout()
                 }
             }
+
+            R.id.exo_settings -> {
+                playerSdkCallBack?.onSettingClicked()
+            }
+
+            R.id.exo_more -> {
+                playerSdkCallBack?.onMoreOptionClicked()
+            }
+
+            R.id.exo_shuffle -> {
+                shuffleState = shuffleState != true
+                playerSdkCallBack?.onShuffleClicked(shuffleState!!)
+            }
+
+            R.id.exo_repeat -> {
+                playerSdkCallBack?.onRepeatClicked()
+            }
+        }
     }
 
     private fun initializePlayer() {
@@ -236,24 +264,26 @@ import kotlinx.coroutines.withContext
         if (mediaPlayer != null) {
             mediaPlayer?.release()
         }
-        if (contentUrl?.isNotEmpty() == true){
+        if (contentUrl?.isNotEmpty() == true) {
 
             val customLoadControl = getCustomLoadControl()
             val trackSelector = DefaultTrackSelector(context)
             mediaPlayer = getMediaPLayerInstance(customLoadControl, trackSelector)
             mediaPlayer?.addListener(playerStateListener)
             mediaPlayerView?.player = mediaPlayer
-            mediaPlayerView?.controllerHideOnTouch = true
+            //mediaPlayerView?.controllerHideOnTouch = true
             mediaPlayerView?.keepScreenOn = true
             mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())
-            val mediaItem = getMediaItem(drm = isDrm, videoUrl = contentUrl.toString())
+            val mediaItem = getMediaItem(
+                drm = isDrm, videoUrl = contentUrl.toString(), drmLicenseUrl = token, adsUrl = adUrl
+            )
             mediaPlayer?.setMediaItem(mediaItem)
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
             tvContentTitle?.text = contentTitle
 
-        }else{
+        } else {
 
             playerSdkCallBack?.onThrowCustomError(INVALID_CONTENT_ID)
 
@@ -261,20 +291,20 @@ import kotlinx.coroutines.withContext
     }
 
     private fun getMediaItem(
-        drm: Boolean, videoUrl: String,
+        drm: Boolean,
+        videoUrl: String,
         drmLicenseUrl: String? = null,
         adsUrl: String? = null,
-        subtitle: MediaItem.SubtitleConfiguration? = null
+        subtitle: MutableList<MediaItem.SubtitleConfiguration>? = null
     ): MediaItem {
 
-        val mediaItemBuilder = MediaItem.Builder()
-            .setUri(videoUrl)
+        val mediaItemBuilder = MediaItem.Builder().setUri(videoUrl)
             .setMediaMetadata(MediaMetadata.Builder().setTitle(contentTitle).build())
 
         if (drm && !drmLicenseUrl.isNullOrEmpty()) {
-            val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-                .setLicenseUri(drmLicenseUrl)
-                .build()
+            val drmConfig =
+                MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID).setLicenseUri(drmLicenseUrl)
+                    .build()
             mediaItemBuilder.setDrmConfiguration(drmConfig)
         }
 
@@ -284,35 +314,34 @@ import kotlinx.coroutines.withContext
                 MediaItem.AdsConfiguration.Builder(adTagUri).build()
             )
         }
+
+        if (subtitle != null) {
+            mediaItemBuilder.setSubtitleConfigurations(subtitle)
+        }
+
         return mediaItemBuilder.build()
     }
 
     private fun getCustomLoadControl(): LoadControl {
 
-        return DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                MIN_BUFFER_DURATION, MAX_BUFFER_DURATION,
-                BUFFER_FOR_PLAYBACK, BUFFER_FOR_PLAYBACK_AFTER_RE_BUFFER
-            )
-            .setAllocator(DefaultAllocator(true, ALLOCATION_SIZE))
-            .setBackBuffer(BACK_BUFFER_DURATION, false)
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .setTargetBufferBytes(C.LENGTH_UNSET)
-            .build()
+        return DefaultLoadControl.Builder().setBufferDurationsMs(
+            MIN_BUFFER_DURATION,
+            MAX_BUFFER_DURATION,
+            BUFFER_FOR_PLAYBACK,
+            BUFFER_FOR_PLAYBACK_AFTER_RE_BUFFER
+        ).setAllocator(DefaultAllocator(true, ALLOCATION_SIZE))
+            .setBackBuffer(BACK_BUFFER_DURATION, false).setPrioritizeTimeOverSizeThresholds(true)
+            .setTargetBufferBytes(C.LENGTH_UNSET).build()
 
     }
 
     private fun getMediaPLayerInstance(
-        customLoadControl: LoadControl,
-        trackSelector: TrackSelector
+        customLoadControl: LoadControl, trackSelector: TrackSelector
     ): ExoPlayer {
 
-        return ExoPlayer.Builder(context)
-            .setLoadControl(customLoadControl)
-            .setTrackSelector(trackSelector)
-            .setSeekForwardIncrementMs(FORWARD_INCREMENT.toLong())
-            .setSeekBackIncrementMs(BACKWARD_INCREMENT.toLong())
-            .build()
+        return ExoPlayer.Builder(context).setLoadControl(customLoadControl)
+            .setTrackSelector(trackSelector).setSeekForwardIncrementMs(FORWARD_INCREMENT.toLong())
+            .setSeekBackIncrementMs(BACKWARD_INCREMENT.toLong()).build()
     }
 
     private var playerStateListener: Player.Listener = object : Player.Listener {
@@ -325,7 +354,7 @@ import kotlinx.coroutines.withContext
                     startUpdates()
                     playerSdkCallBack?.onBufferingEnded()
                     playerSdkCallBack?.onVideoStart()
-                    mediaPlayerView?.visibility = VISIBLE
+                    mediaPlayerView?.isVisible = true
                     if (mediaPlayer?.duration != null) {
                         playerScrub?.setDuration(mediaPlayer?.duration!!)
                     }
@@ -341,7 +370,7 @@ import kotlinx.coroutines.withContext
                 Player.STATE_BUFFERING -> {
                     stopUpdates()
                     playerSdkCallBack?.onBufferingStart()
-                    //start showing buffering view here
+
                 }
 
                 Player.STATE_ENDED -> {
@@ -363,12 +392,15 @@ import kotlinx.coroutines.withContext
     }
 
     private fun isDrmContent(videoUrl: String): Boolean {
-        return videoUrl.split("\\.".toRegex())[1] == "mpd"
+        return videoUrl.split("\\.".toRegex())[1] == MPD
     }
 
-    //Video Player functions to be called from implementing activity/fragment/class directly
     fun setContentFilePath(url: String) {
         contentUrl = url
+    }
+
+    fun setAdUrl(adurl: String) {
+        adUrl = adurl
     }
 
     fun startPlayer() {
@@ -404,11 +436,13 @@ import kotlinx.coroutines.withContext
             playerSdkCallBack?.onPlayerRelease()
         }
     }
-
-    fun updateVolume(){
+    fun setBgImage(url: String, placeholder: Int?) {
+        loadImage(url, bannerIcon as ImageView, placeholder)
+    }
+    fun updateVolume() {
         try {
             volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        }catch (e:Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
@@ -418,9 +452,7 @@ import kotlinx.coroutines.withContext
     }
 
     fun setContentMetaData(
-        contentType: ContentType,
-        contentTitle: String? = "",
-        contentId: String
+        contentType: ContentType, contentTitle: String? = "", contentId: String
     ) {
         this.contentType = contentType
         if (contentTitle?.isNotEmpty() == true) {
@@ -434,7 +466,6 @@ import kotlinx.coroutines.withContext
     }
 
     private fun convertMsToMinSec(ms: Long): String {
-
         val minutes = (ms / (1000 * 60)) % 60
         val seconds = (ms / 1000) % 60
         return String.format("%02d:%02d", minutes, seconds)
@@ -442,28 +473,33 @@ import kotlinx.coroutines.withContext
 
     override fun onScrubStart(timeBar: TimeBar, position: Long) {
         mediaPlayer?.pause()
-        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
-            flPreview as FrameLayout)
+        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(
+            position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
+            flPreview as FrameLayout
+        )
     }
 
     override fun onScrubMove(timeBar: TimeBar, position: Long) {
-        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
-            flPreview as FrameLayout)
-
+        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(
+            position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
+            flPreview as FrameLayout
+        )
     }
 
     override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
 
-        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
-            flPreview as FrameLayout)
+        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(
+            position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
+            flPreview as FrameLayout
+        )
 
-        if (!canceled){
+        if (!canceled) {
             flPreview?.isVisible = false
             mediaPlayer?.seekTo(position)
             mediaPlayer?.play()
@@ -478,8 +514,8 @@ import kotlinx.coroutines.withContext
     private fun startUpdates() {
         stopUpdates()
         job = scope.launch {
-            while(true) {
-                withContext(Dispatchers.Main){
+            while (true) {
+                withContext(Dispatchers.Main) {
                     playerScrub?.setPosition(mediaPlayer?.currentPosition as Long)
                 }
                 delay(1000)
@@ -495,25 +531,27 @@ import kotlinx.coroutines.withContext
         playerSdkCallBack?.onFullScreenEnter()
 
     }
-    @OptIn(DelicateCoroutinesApi::class)
-    fun setSpriteData(spriteUrl : String, toLoadFromBitmap:Boolean){
 
-        if (toLoadFromBitmap){
+    @OptIn(DelicateCoroutinesApi::class)
+    fun setSpriteData(spriteUrl: String, toLoadFromBitmap: Boolean) {
+
+        if (toLoadFromBitmap) {
             GlobalScope.launch {
                 try {
-                    spriteData =  convertSpriteData(spriteUrl)
+                    spriteData = convertSpriteData(spriteUrl)
                 } catch (ex: Exception) {
                     Log.e("ExampleUsage", "Exception: $ex")
                 }
             }
 
-        }else{
+        } else {
             this.spriteUrl = spriteUrl
         }
     }
-    private fun loadSprite(position: Long, maxLine:Int){
 
-        flPreview?.isVisible  = true
+    private fun loadSprite(position: Long, maxLine: Int) {
+
+        flPreview?.isVisible = true
         if (spriteData != null) {
             Glide.with(scrubImage as ImageView).load(spriteData)
                 .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).fitCenter()
@@ -527,14 +565,13 @@ import kotlinx.coroutines.withContext
                     .into(scrubImage as ImageView)
             } else {
 
-                flPreview?.isVisible  = false
+                flPreview?.isVisible = false
             }
         }
     }
+
     private fun updatePreviewPosition(
-        scrubPosition: Int,
-        maxPosition: Int,
-        previewLayout: FrameLayout
+        scrubPosition: Int, maxPosition: Int, previewLayout: FrameLayout
     ) {
 
         val positionPercent = scrubPosition.toFloat() / maxPosition.toFloat()
@@ -544,5 +581,25 @@ import kotlinx.coroutines.withContext
         layoutParams.horizontalBias = newHorizontalBias.toFloat()
         previewLayout.layoutParams = layoutParams
         previewLayout.requestLayout()
+    }
+
+    private fun loadImage(
+        url: String,
+        imageview: ImageView,
+        placeholderResId: Int?
+    ) {
+        var urlImage = url
+        if (url.isBlank()) urlImage = "invalid"
+
+        if (placeholderResId != null){
+            Glide.with(this)
+                .load(urlImage)
+                .placeholder(placeholderResId)
+                .into(imageview)
+        }else{
+            Glide.with(this)
+                .load(urlImage)
+                .into(imageview)
+        }
     }
 }

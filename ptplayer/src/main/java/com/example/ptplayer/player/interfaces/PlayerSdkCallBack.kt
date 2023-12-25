@@ -42,6 +42,14 @@ interface PlayerSdkCallBack {
 
     fun onPlayerBackPressed()
 
+    fun onSettingClicked()
+
     fun onThrowCustomError(error:String)
+
+    fun onMoreOptionClicked()
+
+    fun onShuffleClicked(state:Boolean)
+
+    fun onRepeatClicked()
 
 }

@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="aol_secondary">#FF8731</color>
+    <color name="aol_main">#120722</color>
 </resources>

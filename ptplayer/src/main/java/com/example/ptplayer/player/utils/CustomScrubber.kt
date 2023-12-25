@@ -10,6 +10,8 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 
+
+//currently not in use
 @SuppressLint("ClickableViewAccessibility")
 class CustomScrubber(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
     View(context, attrs, defStyleAttr) {

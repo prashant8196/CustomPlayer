@@ -516,6 +516,7 @@ class PrashantCustomPlayer(
 
     private fun setMiniPlayerLayout() {
         mediaPlayerView?.hideController()
+        mediaPlayerView?.useController = false
         mediaPlayerView?.isFocusable = false
         mediaPlayerView?.isClickable = false
         playerSdkCallBack?.onFullScreenExit()
@@ -524,9 +525,26 @@ class PrashantCustomPlayer(
     private fun setFullScreenPlayerLayout() {
         mediaPlayerView?.isFocusable = true
         mediaPlayerView?.isClickable = true
+        mediaPlayerView?.useController = true
         mediaPlayerView?.showController()
         playerSdkCallBack?.onFullScreenEnter()
 
+    }
+
+    fun setMiniPlayerLayout(flag:Boolean){
+        if (flag){
+            mediaPlayerView?.hideController()
+            mediaPlayerView?.useController = false
+            mediaPlayerView?.isFocusable = false
+            mediaPlayerView?.isClickable = false
+            playerSdkCallBack?.onFullScreenExit()
+        }else{
+            mediaPlayerView?.useController = true
+            mediaPlayerView?.showController()
+            mediaPlayerView?.isFocusable = true
+            mediaPlayerView?.isClickable = true
+            playerSdkCallBack?.onFullScreenEnter()
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

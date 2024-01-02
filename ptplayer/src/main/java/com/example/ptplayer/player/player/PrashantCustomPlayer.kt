@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.media.AudioManager
 import android.net.Uri
-import android.os.Build
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
@@ -19,7 +18,6 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -67,10 +65,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@UnstableApi class PrashantCustomPlayer (
-    private val context:AppCompatActivity,
-    attrSet:AttributeSet,
-    defStyleAttr:Int) : FrameLayout(context,attrSet,defStyleAttr),OnScrubListener {
+@UnstableApi
+class PrashantCustomPlayer(
+    private val context: AppCompatActivity,
+    attrSet: AttributeSet,
+    defStyleAttr: Int
+) : FrameLayout(context, attrSet, defStyleAttr), OnScrubListener {
 
     private var mediaPlayer: ExoPlayer? = null
     private var mediaPlayerView: PlayerView? = null
@@ -80,7 +80,7 @@ import kotlinx.coroutines.withContext
     private var contentTitle: String? = null
     private var contentId: String? = null
     private var token: String? = null
-    private var adUrl : String? = null
+    private var adUrl: String? = null
 
     private var skipPre: ImageView? = null
     private var playButton: ImageView? = null
@@ -94,16 +94,17 @@ import kotlinx.coroutines.withContext
     private var playerScrub: DefaultTimeBar? = null
     private var flPreview: FrameLayout? = null
     private var tvContentTitle: TextView? = null
-    private var volumeSeekBar:SeekBar? = null
-    private var audioManager:AudioManager? = null
-    private var screenMode:ImageView? = null
-    private var isFullScreen:Int = 0
-    private var customControl:ConstraintLayout? = null
-    private var spriteData : Bitmap? = null
-    private var spriteUrl:String? = null
+    private var volumeSeekBar: SeekBar? = null
+    private var audioManager: AudioManager? = null
+    private var screenMode: ImageView? = null
+    private var isFullScreen: Int = 0
+    private var customControl: ConstraintLayout? = null
+    private var spriteData: Bitmap? = null
+    private var spriteUrl: String? = null
 
     private var job: Job? = null
     private val scope = MainScope()
+
     constructor(context: Context, attrs: AttributeSet) : this(
         context as AppCompatActivity, attrs, 0
     )
@@ -119,7 +120,7 @@ import kotlinx.coroutines.withContext
         volumeSeekBar?.max = audioManager?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) as Int
         try {
             volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        }catch (e:Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
 
@@ -140,7 +141,7 @@ import kotlinx.coroutines.withContext
             if (keyEvent.action == KeyEvent.ACTION_DOWN &&
                 (keyCode == KeyEvent.KEYCODE_ENTER ||
                         keyCode == KeyEvent.KEYCODE_DPAD_CENTER)
-                ) {
+            ) {
                 setUpControlClickListeners(view)
                 return@OnKeyListener true
             }
@@ -161,7 +162,7 @@ import kotlinx.coroutines.withContext
         playerScrub?.addListener(this)
     }
 
-    private fun setOnFocusListenerOnViews(onFocusChangeListener: OnFocusChangeListener){
+    private fun setOnFocusListenerOnViews(onFocusChangeListener: OnFocusChangeListener) {
 
         skipFwd?.onFocusChangeListener = onFocusChangeListener
         skipPre?.onFocusChangeListener = onFocusChangeListener
@@ -199,43 +200,43 @@ import kotlinx.coroutines.withContext
     }
 
     private fun setUpControlClickListeners(view: View) {
-            when (view.id) {
-                R.id.play_btn -> {
-                    resumePlayer()
-                }
+        when (view.id) {
+            R.id.play_btn -> {
+                resumePlayer()
+            }
 
-                R.id.pause_btn -> {
-                    pausePlayer()
-                }
+            R.id.pause_btn -> {
+                pausePlayer()
+            }
 
-                R.id.skip_fwd_btn -> {
-                    val currentPosition = mediaPlayer?.currentPosition
-                    val nextPosition = currentPosition?.plus(FORWARD_INCREMENT)
-                    mediaPlayer?.seekTo(nextPosition as Long)
-                }
+            R.id.skip_fwd_btn -> {
+                val currentPosition = mediaPlayer?.currentPosition
+                val nextPosition = currentPosition?.plus(FORWARD_INCREMENT)
+                mediaPlayer?.seekTo(nextPosition as Long)
+            }
 
-                R.id.skip_pre_btn -> {
-                    val currentPosition = mediaPlayer?.currentPosition
-                    val nextPosition = currentPosition?.minus(BACKWARD_INCREMENT)
-                    mediaPlayer?.seekTo(nextPosition as Long)
-                }
+            R.id.skip_pre_btn -> {
+                val currentPosition = mediaPlayer?.currentPosition
+                val nextPosition = currentPosition?.minus(BACKWARD_INCREMENT)
+                mediaPlayer?.seekTo(nextPosition as Long)
+            }
 
-                R.id.iv_screen_mode ->{
+            R.id.iv_screen_mode -> {
 
-                    if (isFullScreen == 0){
-                        isFullScreen = 1
-                        setFullScreenPlayerLayout()
-                    }else{
-                        isFullScreen =0
-                        setMiniPlayerLayout()
-                    }
-                }
-
-                R.id.exo_settings ->{
-
-                    playerSdkCallBack?.onSettingClicked()
+                if (isFullScreen == 0) {
+                    isFullScreen = 1
+                    setFullScreenPlayerLayout()
+                } else {
+                    isFullScreen = 0
+                    setMiniPlayerLayout()
                 }
             }
+
+            R.id.exo_settings -> {
+
+                playerSdkCallBack?.onSettingClicked()
+            }
+        }
     }
 
     private fun initializePlayer() {
@@ -243,7 +244,7 @@ import kotlinx.coroutines.withContext
         if (mediaPlayer != null) {
             mediaPlayer?.release()
         }
-        if (contentUrl?.isNotEmpty() == true){
+        if (contentUrl?.isNotEmpty() == true) {
 
             val customLoadControl = getCustomLoadControl()
             val trackSelector = DefaultTrackSelector(context)
@@ -256,8 +257,8 @@ import kotlinx.coroutines.withContext
             val isDrm = isDrmContent(contentUrl.toString())
             val mediaItem = getMediaItem(
                 drm = isDrm,
-                videoUrl = contentUrl.toString() ,
-                drmLicenseUrl = token ,
+                videoUrl = contentUrl.toString(),
+                drmLicenseUrl = token,
                 adsUrl = adUrl
             )
             mediaPlayer?.setMediaItem(mediaItem)
@@ -265,7 +266,7 @@ import kotlinx.coroutines.withContext
             mediaPlayer?.playWhenReady = true
             tvContentTitle?.text = contentTitle
 
-        }else{
+        } else {
 
             playerSdkCallBack?.onThrowCustomError(INVALID_CONTENT_ID)
 
@@ -298,7 +299,7 @@ import kotlinx.coroutines.withContext
             )
         }
 
-        if (subtitle != null){
+        if (subtitle != null) {
             mediaItemBuilder.setSubtitleConfigurations(subtitle)
         }
 
@@ -364,8 +365,7 @@ import kotlinx.coroutines.withContext
 
                 Player.STATE_ENDED -> {
                     stopUpdates()
-                    //need to call onPlayNextVideo if it is part of series else onVideoStop
-                    playerSdkCallBack?.onVideoStop()
+                    playerSdkCallBack?.onPlayNextContent()
                 }
             }
         }
@@ -388,7 +388,7 @@ import kotlinx.coroutines.withContext
         contentUrl = url
     }
 
-    fun setAdUrl(adurl:String){
+    fun setAdUrl(adurl: String) {
         adUrl = adurl
     }
 
@@ -427,10 +427,10 @@ import kotlinx.coroutines.withContext
         }
     }
 
-    fun updateVolume(){
+    fun updateVolume() {
         try {
             volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        }catch (e:Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
@@ -464,28 +464,33 @@ import kotlinx.coroutines.withContext
 
     override fun onScrubStart(timeBar: TimeBar, position: Long) {
         mediaPlayer?.pause()
-        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
-            flPreview as FrameLayout)
+        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(
+            position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
+            flPreview as FrameLayout
+        )
     }
 
     override fun onScrubMove(timeBar: TimeBar, position: Long) {
-        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
-            flPreview as FrameLayout)
-
+        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(
+            position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
+            flPreview as FrameLayout
+        )
     }
 
     override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
 
-        loadSprite(position,mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int ,
-            flPreview as FrameLayout)
+        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
+        updatePreviewPosition(
+            position.div(1000).toInt(),
+            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
+            flPreview as FrameLayout
+        )
 
-        if (!canceled){
+        if (!canceled) {
             flPreview?.isVisible = false
             mediaPlayer?.seekTo(position)
             mediaPlayer?.play()
@@ -500,8 +505,8 @@ import kotlinx.coroutines.withContext
     private fun startUpdates() {
         stopUpdates()
         job = scope.launch {
-            while(true) {
-                withContext(Dispatchers.Main){
+            while (true) {
+                withContext(Dispatchers.Main) {
                     playerScrub?.setPosition(mediaPlayer?.currentPosition as Long)
                 }
                 delay(1000)
@@ -512,34 +517,38 @@ import kotlinx.coroutines.withContext
     private fun setMiniPlayerLayout() {
         mediaPlayerView?.hideController()
         mediaPlayerView?.isFocusable = false
+        mediaPlayerView?.isClickable = false
         playerSdkCallBack?.onFullScreenExit()
     }
 
     private fun setFullScreenPlayerLayout() {
         mediaPlayerView?.isFocusable = true
+        mediaPlayerView?.isClickable = true
         mediaPlayerView?.showController()
         playerSdkCallBack?.onFullScreenEnter()
 
     }
-    @OptIn(DelicateCoroutinesApi::class)
-    fun setSpriteData(spriteUrl : String, toLoadFromBitmap:Boolean){
 
-        if (toLoadFromBitmap){
+    @OptIn(DelicateCoroutinesApi::class)
+    fun setSpriteData(spriteUrl: String, toLoadFromBitmap: Boolean) {
+
+        if (toLoadFromBitmap) {
             GlobalScope.launch {
                 try {
-                    spriteData =  convertSpriteData(spriteUrl)
+                    spriteData = convertSpriteData(spriteUrl)
                 } catch (ex: Exception) {
                     Log.e("ExampleUsage", "Exception: $ex")
                 }
             }
 
-        }else{
+        } else {
             this.spriteUrl = spriteUrl
         }
     }
-    private fun loadSprite(position: Long, maxLine:Int){
 
-        flPreview?.isVisible  = true
+    private fun loadSprite(position: Long, maxLine: Int) {
+
+        flPreview?.isVisible = true
         if (spriteData != null) {
             Glide.with(scrubImage as ImageView).load(spriteData)
                 .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).fitCenter()
@@ -553,10 +562,11 @@ import kotlinx.coroutines.withContext
                     .into(scrubImage as ImageView)
             } else {
 
-                flPreview?.isVisible  = false
+                flPreview?.isVisible = false
             }
         }
     }
+
     private fun updatePreviewPosition(
         scrubPosition: Int,
         maxPosition: Int,

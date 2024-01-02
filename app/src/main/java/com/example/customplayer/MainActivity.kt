@@ -28,10 +28,11 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val url = "https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp3"
+        val url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
         val sprite = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.jpg"
         binding.ptPlayer.setContentFilePath(url)
-        binding.ptPlayer.setBgImage(url = "https://altb-img.multitvsolution.com/multitv/content/1061_651bac882efbe_854x480.jpg",null)
+
+       // binding.ptPlayer.setBgImage(url = "https://altb-img.multitvsolution.com/multitv/content/1061_651bac882efbe_854x480.jpg",null)
         binding.ptPlayer.setSpriteData(sprite,false)
         binding.ptPlayer.setContentMetaData(ContentType.AUD,"Sample","11634")
         binding.ptPlayer.setVideoPlayerSdkListener(this)

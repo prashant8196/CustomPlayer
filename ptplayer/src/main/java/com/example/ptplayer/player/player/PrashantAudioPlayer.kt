@@ -276,7 +276,10 @@ class PrashantAudioPlayer(
             mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())
             val mediaItem = getMediaItem(
-                drm = isDrm, videoUrl = contentUrl.toString(), drmLicenseUrl = token, adsUrl = adUrl
+                drm = isDrm,
+                videoUrl = contentUrl.toString(),
+                drmLicenseUrl = token,
+                adsUrl = adUrl
             )
             mediaPlayer?.setMediaItem(mediaItem)
             mediaPlayer?.prepare()
@@ -375,8 +378,8 @@ class PrashantAudioPlayer(
 
                 Player.STATE_ENDED -> {
                     stopUpdates()
-                    //need to call onPlayNextVideo if it is part of series else onVideoStop
                     playerSdkCallBack?.onVideoStop()
+                    playerSdkCallBack?.onPlayNextContent()
                 }
             }
         }
@@ -405,6 +408,11 @@ class PrashantAudioPlayer(
 
     fun startPlayer() {
         initializePlayer()
+    }
+
+     fun hideControllerAlways() {
+        mediaPlayerView?.useController = true
+        mediaPlayerView?.controllerShowTimeoutMs = 0
     }
 
     fun pausePlayer() {

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.example.ptplayer.player.player.PrashantAudioPlayer
+    <com.example.ptplayer.player.player.PrashantCustomPlayer
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
@@ -15,7 +15,8 @@
         android:keepScreenOn="true"
         android:id="@+id/pt_player">
 
-    </com.example.ptplayer.player.player.PrashantAudioPlayer>
+    </com.example.ptplayer.player.player.PrashantCustomPlayer>
+
 
     <com.example.ptplayer.player.utils.LoadingView
         android:layout_width="wrap_content"

@@ -14,7 +14,7 @@
         android:id="@+id/media_player_view"
         app:resize_mode="fill"
         app:use_controller="true"
-        app:surface_type="surface_view"
+        app:surface_type="none"
         app:controller_layout_id="@layout/audio_control"
         app:animation_enabled="false">
 

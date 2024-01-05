@@ -5,6 +5,7 @@ import android.content.Context.AUDIO_SERVICE
 import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.media.AudioManager
+import android.media.MediaSession2Service
 import android.net.Uri
 import android.text.TextUtils
 import android.util.AttributeSet
@@ -90,7 +91,6 @@ class PrashantAudioPlayer(
     private var settings: ImageView? = null
     private var scrubImage: ImageView? = null
     private var playerScrub: DefaultTimeBar? = null
-    private var flPreview: FrameLayout? = null
     private var tvContentTitle: TextView? = null
     private var volumeSeekBar: SeekBar? = null
     private var audioManager: AudioManager? = null
@@ -193,7 +193,6 @@ class PrashantAudioPlayer(
         scrubImage = view.findViewById(R.id.imageView)
         tvContentTitle = view.findViewById(R.id.content_title)
         playerScrub = view.findViewById(R.id.player_scrub)
-        flPreview = view.findViewById(R.id.previewFrameLayout)
         volumeSeekBar = view.findViewById(R.id.volume_seekbar)
         customControl = view.findViewById(R.id.custom_control)
         preTrack = view.findViewById(R.id.exo_prev)
@@ -481,36 +480,19 @@ class PrashantAudioPlayer(
 
     override fun onScrubStart(timeBar: TimeBar, position: Long) {
         mediaPlayer?.pause()
-        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(
-            position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
-            flPreview as FrameLayout
-        )
     }
 
     override fun onScrubMove(timeBar: TimeBar, position: Long) {
-        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(
-            position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
-            flPreview as FrameLayout
-        )
+
     }
 
     override fun onScrubStop(timeBar: TimeBar, position: Long, canceled: Boolean) {
 
-        loadSprite(position, mediaPlayer?.duration?.toInt()?.div(1000) as Int)
-        updatePreviewPosition(
-            position.div(1000).toInt(),
-            mediaPlayer?.duration?.toInt()?.div(1000) as Int,
-            flPreview as FrameLayout
-        )
-
         if (!canceled) {
-            flPreview?.isVisible = false
             mediaPlayer?.seekTo(position)
-            mediaPlayer?.play()
+            if (pauseButton?.isVisible == true){
+                mediaPlayer?.play()
+            }
         }
     }
 
@@ -555,40 +537,6 @@ class PrashantAudioPlayer(
         } else {
             this.spriteUrl = spriteUrl
         }
-    }
-
-    private fun loadSprite(position: Long, maxLine: Int) {
-
-        flPreview?.isVisible = true
-        if (spriteData != null) {
-            Glide.with(scrubImage as ImageView).load(spriteData)
-                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).fitCenter()
-                .transform(GlideThumbnailTransformation(position, maxLine))
-                .into(scrubImage as ImageView)
-        } else {
-            if (!TextUtils.isEmpty(spriteUrl)) {
-                Glide.with(scrubImage as ImageView).load(spriteUrl)
-                    .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).fitCenter()
-                    .transform(GlideThumbnailTransformation(position, maxLine))
-                    .into(scrubImage as ImageView)
-            } else {
-
-                flPreview?.isVisible = false
-            }
-        }
-    }
-
-    private fun updatePreviewPosition(
-        scrubPosition: Int, maxPosition: Int, previewLayout: FrameLayout
-    ) {
-
-        val positionPercent = scrubPosition.toFloat() / maxPosition.toFloat()
-        val newHorizontalBias = positionPercent * (1 - 0.35)
-
-        val layoutParams = previewLayout.layoutParams as ConstraintLayout.LayoutParams
-        layoutParams.horizontalBias = newHorizontalBias.toFloat()
-        previewLayout.layoutParams = layoutParams
-        previewLayout.requestLayout()
     }
 
     private fun loadImage(

@@ -134,25 +134,23 @@
 
         <ImageView
             android:id="@+id/play_btn"
-            android:layout_width="60dp"
+            android:layout_width="40dp"
             android:layout_height="match_parent"
             android:clickable="true"
             android:focusable="true"
-            android:padding="1dp"
-            android:src="@drawable/play_audio"
-            android:visibility="visible" />
+            android:src="@drawable/playicon"
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/pause_btn"
-            android:layout_width="wrap_content"
+            android:layout_width="40dp"
             android:layout_height="match_parent"
-            android:layout_marginHorizontal="25dp"
             android:clickable="true"
             android:contentDescription="@string/play_the_video"
             android:focusable="true"
-            android:padding="2dp"
+            android:visibility="visible"
             android:src="@drawable/baseline_pause_24"
-            android:visibility="gone" />
+            />
 
         <ImageView
             android:id="@+id/exo_next"
@@ -173,7 +171,7 @@
             android:clickable="true"
             android:contentDescription="@string/click_to_open_settings"
             android:focusable="true"
-            android:nextFocusLeft="@id/exo_next"
+            android:nextFocusLeft="@id/exo_prev"
             android:nextFocusRight="@id/exo_repeat"
             android:padding="1dp"
             android:src="@drawable/dot_player" />
@@ -275,7 +273,6 @@
         </TextView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
     <androidx.media3.ui.DefaultTimeBar
         android:id="@+id/player_scrub"

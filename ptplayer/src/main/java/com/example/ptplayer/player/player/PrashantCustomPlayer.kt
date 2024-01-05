@@ -493,7 +493,9 @@ class PrashantCustomPlayer(
         if (!canceled) {
             flPreview?.isVisible = false
             mediaPlayer?.seekTo(position)
-            mediaPlayer?.play()
+            if (pauseButton?.isVisible == true){
+                mediaPlayer?.play()
+            }
         }
     }
 

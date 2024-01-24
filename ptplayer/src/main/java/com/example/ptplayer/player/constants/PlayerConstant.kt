@@ -22,4 +22,6 @@ object PlayerConstant {
 
     const val MPD ="mpd"
 
+    const val METADATA_KEY_TITLE = "METADATA_KEY_TITLE"
+
 }

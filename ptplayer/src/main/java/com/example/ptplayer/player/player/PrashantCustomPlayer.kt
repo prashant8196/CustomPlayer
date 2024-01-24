@@ -23,16 +23,20 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
+import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import androidx.media3.ui.DefaultTimeBar
@@ -56,6 +60,7 @@ import com.example.ptplayer.player.constants.PlayerConstant.MPD
 import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
 import com.example.ptplayer.player.utils.GlideThumbnailTransformation
 import com.example.ptplayer.player.utils.convertSpriteData
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -81,6 +86,7 @@ class PrashantCustomPlayer(
     private var contentId: String? = null
     private var token: String? = null
     private var adUrl: String? = null
+    private var currentVolume:Float? = null
 
     private var skipPre: ImageView? = null
     private var playButton: ImageView? = null
@@ -89,6 +95,7 @@ class PrashantCustomPlayer(
     private var preTrack: ImageView? = null
     private var nextTrack: ImageView? = null
     private var volumeIcon: ImageView? = null
+    private var muteIcon:ImageView? = null
     private var settings: ImageView? = null
     private var scrubImage: ImageView? = null
     private var playerScrub: DefaultTimeBar? = null
@@ -101,6 +108,7 @@ class PrashantCustomPlayer(
     private var customControl: ConstraintLayout? = null
     private var spriteData: Bitmap? = null
     private var spriteUrl: String? = null
+    private var videoFormatList = java.util.ArrayList<Format>()
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -156,6 +164,7 @@ class PrashantCustomPlayer(
         preTrack?.setOnKeyListener(enterKeyListener)
         nextTrack?.setOnKeyListener(enterKeyListener)
         volumeIcon?.setOnKeyListener(enterKeyListener)
+        muteIcon?.setOnKeyListener(enterKeyListener)
         settings?.setOnKeyListener(enterKeyListener)
         scrubImage?.setOnKeyListener(enterKeyListener)
         screenMode?.setOnKeyListener(enterKeyListener)
@@ -171,6 +180,7 @@ class PrashantCustomPlayer(
         preTrack?.onFocusChangeListener = onFocusChangeListener
         nextTrack?.onFocusChangeListener = onFocusChangeListener
         volumeIcon?.onFocusChangeListener = onFocusChangeListener
+        muteIcon?.onFocusChangeListener = onFocusChangeListener
         settings?.onFocusChangeListener = onFocusChangeListener
         scrubImage?.onFocusChangeListener = onFocusChangeListener
         screenMode?.onFocusChangeListener = onFocusChangeListener
@@ -186,14 +196,15 @@ class PrashantCustomPlayer(
         playButton = view.findViewById(R.id.play_btn)
         pauseButton = view.findViewById(R.id.pause_btn)
         volumeIcon = view.findViewById(R.id.volume_btn)
+        muteIcon = view.findViewById(R.id.mute_btn)
         scrubImage = view.findViewById(R.id.imageView)
         tvContentTitle = view.findViewById(R.id.content_title)
         playerScrub = view.findViewById(R.id.player_scrub)
         flPreview = view.findViewById(R.id.previewFrameLayout)
         volumeSeekBar = view.findViewById(R.id.volume_seekbar)
         customControl = view.findViewById(R.id.custom_control)
-        preTrack = view.findViewById(R.id.exo_prev)
-        nextTrack = view.findViewById(R.id.exo_next)
+        preTrack = view.findViewById(R.id.previous)
+        nextTrack = view.findViewById(R.id.next)
         settings = view.findViewById(R.id.exo_settings)
         screenMode = view.findViewById(R.id.iv_screen_mode)
 
@@ -236,6 +247,22 @@ class PrashantCustomPlayer(
 
                 playerSdkCallBack?.onSettingClicked()
             }
+
+            R.id.volume_btn ->{
+
+                volumeIcon?.isVisible = false
+                muteIcon?.isVisible = true
+                currentVolume = mediaPlayer?.volume
+                mediaPlayer?.volume = 0f
+            }
+
+            R.id.mute_btn ->{
+
+                mediaPlayer?.volume = currentVolume as Float
+                muteIcon?.isVisible = false
+                volumeIcon?.isVisible = true
+            }
+
         }
     }
 
@@ -248,6 +275,7 @@ class PrashantCustomPlayer(
 
             val customLoadControl = getCustomLoadControl()
             val trackSelector = DefaultTrackSelector(context)
+            trackSelector.currentMappedTrackInfo
             mediaPlayer = getMediaPLayerInstance(customLoadControl, trackSelector)
             mediaPlayer?.addListener(playerStateListener)
             mediaPlayerView?.player = mediaPlayer
@@ -255,6 +283,7 @@ class PrashantCustomPlayer(
             mediaPlayerView?.keepScreenOn = true
             mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())
+            val subtitle: MutableList<MediaItem.SubtitleConfiguration>?
             val mediaItem = getMediaItem(
                 drm = isDrm,
                 videoUrl = contentUrl.toString(),
@@ -265,6 +294,7 @@ class PrashantCustomPlayer(
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
             tvContentTitle?.text = contentTitle
+
 
         } else {
 
@@ -350,6 +380,7 @@ class PrashantCustomPlayer(
                     }
                     playerScrub?.setPosition(mediaPlayer?.currentPosition as Long)
                     mediaPlayerView?.bringToFront()
+
                 }
 
                 Player.STATE_IDLE -> {
@@ -600,5 +631,66 @@ class PrashantCustomPlayer(
         layoutParams.horizontalBias = newHorizontalBias.toFloat()
         previewLayout.layoutParams = layoutParams
         previewLayout.requestLayout()
+    }
+
+     fun getVideoFormats() {
+        val trackSelector = mediaPlayer?.trackSelector as? DefaultTrackSelector
+        val mappedTrackInfo = trackSelector?.currentMappedTrackInfo
+        videoFormatList.clear()
+        mappedTrackInfo?.let {
+            val videoRendererIndices = (0 until it.rendererCount).filter { index -> isVideoRenderer(it, index) }
+
+            videoRendererIndices.forEach { videoRendererIndex ->
+                val override = it.getTrackGroups(videoRendererIndex)
+                videoFormatList.addAll(getVideoQualityList(override))
+            }
+        }
+    }
+    private fun getVideoQualityList(trackGroups: TrackGroupArray): List<Format> {
+        val videoQuality = mutableListOf<Format>()
+        for (groupIndex in 0 until trackGroups.length) {
+            val group = trackGroups[groupIndex]
+            videoQuality.addAll((0 until group.length).map { trackIndex -> group.getFormat(trackIndex) })
+        }
+        return videoQuality
+    }
+
+    private fun isVideoRenderer(
+        mappedTrackInfo: MappingTrackSelector.MappedTrackInfo,
+        rendererIndex: Int
+    ): Boolean {
+        return mappedTrackInfo.getTrackGroups(rendererIndex).length > 0 &&
+                C.TRACK_TYPE_VIDEO == mappedTrackInfo.getRendererType(rendererIndex)
+    }
+
+     fun changeVideoResolution(width:Int,height:Int){
+        val trackSelector = mediaPlayer?.trackSelector as? DefaultTrackSelector
+        trackSelector?.buildUponParameters()?.setMaxVideoSize(height, width)?.let { newParameters ->
+            trackSelector.setParameters(newParameters)
+        }
+    }
+
+    fun seekTo(time:Long){
+        mediaPlayer?.seekTo(time)
+    }
+
+    fun getCurrentDuration():Long{
+        return mediaPlayer?.currentPosition as Long
+    }
+
+    fun setPlayBackSpeed(speed:Float){
+        mediaPlayer?.playbackParameters = PlaybackParameters(speed)
+    }
+
+    fun hideControls(){
+        mediaPlayerView?.hideController()
+    }
+
+    fun showControls(){
+        mediaPlayerView?.showController()
+    }
+
+    fun setSubtitles(){
+
     }
 }

@@ -1,12 +1,17 @@
 package com.example.ptplayer.player.player
 
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Context.AUDIO_SERVICE
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.PorterDuff
 import android.media.AudioManager
 import android.media.MediaSession2Service
 import android.net.Uri
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
@@ -21,6 +26,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.media3.common.C
@@ -33,6 +39,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
+import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
@@ -88,6 +95,7 @@ class PrashantAudioPlayer(
     private var preTrack: ImageView? = null
     private var nextTrack: ImageView? = null
     private var volumeIcon: ImageView? = null
+    private var muteIcon:ImageView? = null
     private var settings: ImageView? = null
     private var scrubImage: ImageView? = null
     private var playerScrub: DefaultTimeBar? = null
@@ -103,6 +111,8 @@ class PrashantAudioPlayer(
     private var repeatIcon: ImageView? = null
     private var bannerIcon: ImageView? = null
     private var shuffleState:Boolean? = false
+    private var mediaSession: MediaSessionCompat? = null
+    private var currentVolume:Float? = null
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -154,6 +164,7 @@ class PrashantAudioPlayer(
         preTrack?.setOnKeyListener(enterKeyListener)
         nextTrack?.setOnKeyListener(enterKeyListener)
         volumeIcon?.setOnKeyListener(enterKeyListener)
+        muteIcon?.setOnKeyListener(enterKeyListener)
         settings?.setOnKeyListener(enterKeyListener)
         scrubImage?.setOnKeyListener(enterKeyListener)
         screenMode?.setOnKeyListener(enterKeyListener)
@@ -172,6 +183,7 @@ class PrashantAudioPlayer(
         preTrack?.onFocusChangeListener = onFocusChangeListener
         nextTrack?.onFocusChangeListener = onFocusChangeListener
         volumeIcon?.onFocusChangeListener = onFocusChangeListener
+        muteIcon?.onFocusChangeListener = onFocusChangeListener
         settings?.onFocusChangeListener = onFocusChangeListener
         scrubImage?.onFocusChangeListener = onFocusChangeListener
         screenMode?.onFocusChangeListener = onFocusChangeListener
@@ -190,6 +202,7 @@ class PrashantAudioPlayer(
         playButton = view.findViewById(R.id.play_btn)
         pauseButton = view.findViewById(R.id.pause_btn)
         volumeIcon = view.findViewById(R.id.volume_btn)
+        muteIcon = view.findViewById(R.id.mute_btn)
         scrubImage = view.findViewById(R.id.imageView)
         tvContentTitle = view.findViewById(R.id.content_title)
         playerScrub = view.findViewById(R.id.player_scrub)
@@ -255,6 +268,21 @@ class PrashantAudioPlayer(
             R.id.exo_repeat -> {
                 playerSdkCallBack?.onRepeatClicked()
             }
+
+            R.id.volume_btn ->{
+
+                volumeIcon?.isVisible = false
+                muteIcon?.isVisible = true
+                currentVolume = mediaPlayer?.volume
+                mediaPlayer?.volume = 0f
+            }
+
+            R.id.mute_btn ->{
+
+                mediaPlayer?.volume = currentVolume as Float
+                muteIcon?.isVisible = false
+                volumeIcon?.isVisible = true
+            }
         }
     }
 
@@ -284,12 +312,85 @@ class PrashantAudioPlayer(
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
             tvContentTitle?.text = contentTitle
+            createNotification()
+
 
         } else {
 
             playerSdkCallBack?.onThrowCustomError(INVALID_CONTENT_ID)
 
         }
+
+
+        mediaSession?.setMetadata(
+            MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, contentTitle)
+                // Add other metadata as needed
+                .build()
+        )
+
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(
+                    if (mediaPlayer?.playWhenReady == true) PlaybackStateCompat.STATE_PLAYING
+                    else PlaybackStateCompat.STATE_PAUSED,
+                    mediaPlayer?.currentPosition ?: 0,
+                    1.0f
+                )
+                .build()
+        )
+
+        initializeMediaSession()
+    }
+
+    private fun initializeMediaSession() {
+        mediaSession = MediaSessionCompat(context, "PrashantAudioPlayer")
+        mediaSession?.setCallback(MediaSessionCallback())
+        mediaSession?.isActive = true
+    }
+
+
+    private inner class MediaSessionCallback : MediaSessionCompat.Callback() {
+        override fun onPlay() {
+            resumePlayer()
+        }
+
+        override fun onPause() {
+            pausePlayer()
+        }
+
+        override fun onStop() {
+            releasePlayer()
+        }
+
+        override fun onSeekTo(pos: Long) {
+            mediaPlayer?.seekTo(pos)
+        }
+
+        override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+            return super.onMediaButtonEvent(mediaButtonEvent)
+        }
+    }
+
+
+    fun playPause() {
+        if (mediaPlayer?.playWhenReady == true) {
+            mediaSession?.controller?.transportControls?.pause()
+        } else {
+            mediaSession?.controller?.transportControls?.play()
+        }
+    }
+
+    fun stop() {
+        mediaSession?.controller?.transportControls?.stop()
+    }
+
+    fun seekTo(time:Long){
+        mediaPlayer?.seekTo(time)
+    }
+
+    fun getCurrentDuration():Long{
+        return mediaPlayer?.currentPosition as Long
     }
 
     private fun getMediaItem(
@@ -332,18 +433,23 @@ class PrashantAudioPlayer(
             BUFFER_FOR_PLAYBACK,
             BUFFER_FOR_PLAYBACK_AFTER_RE_BUFFER
         ).setAllocator(DefaultAllocator(true, ALLOCATION_SIZE))
-            .setBackBuffer(BACK_BUFFER_DURATION, false).setPrioritizeTimeOverSizeThresholds(true)
+            .setBackBuffer(BACK_BUFFER_DURATION, false)
+            .setPrioritizeTimeOverSizeThresholds(true)
             .setTargetBufferBytes(C.LENGTH_UNSET).build()
 
     }
 
     private fun getMediaPLayerInstance(
-        customLoadControl: LoadControl, trackSelector: TrackSelector
+        customLoadControl: LoadControl,
+        trackSelector: TrackSelector
     ): ExoPlayer {
 
-        return ExoPlayer.Builder(context).setLoadControl(customLoadControl)
-            .setTrackSelector(trackSelector).setSeekForwardIncrementMs(FORWARD_INCREMENT.toLong())
-            .setSeekBackIncrementMs(BACKWARD_INCREMENT.toLong()).build()
+        return ExoPlayer.Builder(context)
+            .setLoadControl(customLoadControl)
+            .setTrackSelector(trackSelector)
+            .setSeekForwardIncrementMs(FORWARD_INCREMENT.toLong())
+            .setSeekBackIncrementMs(BACKWARD_INCREMENT.toLong())
+            .build()
     }
 
     private var playerStateListener: Player.Listener = object : Player.Listener {
@@ -530,7 +636,7 @@ class PrashantAudioPlayer(
                 try {
                     spriteData = convertSpriteData(spriteUrl)
                 } catch (ex: Exception) {
-                    Log.e("ExampleUsage", "Exception: $ex")
+                    Log.e("SpriteException", "Exception: $ex")
                 }
             }
 
@@ -557,5 +663,40 @@ class PrashantAudioPlayer(
                 .load(urlImage)
                 .into(imageview)
         }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        mediaSession?.isActive = true
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        mediaSession?.isActive = false
+    }
+
+
+    private fun createNotification() {
+        val mediaSessionToken = mediaSession?.sessionToken
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle()
+                    .setMediaSession(mediaSessionToken)
+                    .setShowActionsInCompactView(0, 1, 2)
+            )
+            .setSmallIcon(R.drawable.dot_player)
+            .setContentTitle(contentTitle)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .build()
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    companion object {
+        private const val NOTIFICATION_ID = 123
+        private const val CHANNEL_ID = "123"
     }
 }

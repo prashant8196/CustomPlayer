@@ -196,6 +196,18 @@
                 android:padding="1dp"
                 android:src="@drawable/volume_player" />
 
+            <ImageView
+                android:id="@+id/mute_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:clickable="true"
+                android:visibility="gone"
+                android:contentDescription="@string/volume_icon"
+                android:focusable="true"
+                android:nextFocusRight="@id/exo_settings"
+                android:padding="1dp"
+                android:src="@drawable/volume_off"/>
+
             <SeekBar
                 android:id="@+id/volume_seekbar"
                 android:layout_width="100dp"

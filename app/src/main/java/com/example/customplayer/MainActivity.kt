@@ -13,12 +13,12 @@ import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
 class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
 
     @OptIn(UnstableApi::class) override fun onDestroy() {
-        binding.ptPlayer.releasePlayer()
+        //binding.ptPlayer.releasePlayer()
         super.onDestroy()
     }
 
     @OptIn(UnstableApi::class) override fun onStop() {
-        binding.ptPlayer.releasePlayer()
+        //binding.ptPlayer.releasePlayer()
         super.onStop()
     }
 
@@ -28,13 +28,13 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+        val url = "https://aolvideos.multitvsolution.com/multitv/output/717_62273a8e752c8/717_62273a8e752c8_master.m3u8"
         val sprite = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.jpg"
         binding.ptPlayer.setContentFilePath(url)
 
        // binding.ptPlayer.setBgImage(url = "https://altb-img.multitvsolution.com/multitv/content/1061_651bac882efbe_854x480.jpg",null)
         binding.ptPlayer.setSpriteData(sprite,false)
-        binding.ptPlayer.setContentMetaData(ContentType.AUD,"Sample","11634")
+        binding.ptPlayer.setContentMetaData(ContentType.VOD,"Sample","11634")
         binding.ptPlayer.setVideoPlayerSdkListener(this)
         binding.ptPlayer.startPlayer()
 
@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
     }
 
     @OptIn(UnstableApi::class) override fun onPlayerBackPressed() {
-        binding.ptPlayer.releasePlayer()
+        //binding.ptPlayer.releasePlayer()
     }
 
     override fun onSettingClicked() {

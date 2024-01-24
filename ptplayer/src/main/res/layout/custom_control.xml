@@ -140,7 +140,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:src="@drawable/preback"
-            android:id="@+id/exo_prev"
+            android:id="@+id/previous"
             android:clickable="true"
             android:focusable="true"
             android:padding="1dp"
@@ -149,7 +149,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:id="@+id/exo_next"
+            android:id="@+id/next"
             android:clickable="true"
             android:focusable="true"
             android:padding="1dp"
@@ -165,6 +165,18 @@
             android:clickable="true"
             android:nextFocusRight="@id/exo_settings"
             android:src="@drawable/volume_player"
+            android:contentDescription="@string/volume_icon" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/mute_btn"
+            android:padding="1dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:visibility="gone"
+            android:nextFocusRight="@id/exo_settings"
+            android:src="@drawable/volume_off"
             android:contentDescription="@string/volume_icon" />
 
         <SeekBar

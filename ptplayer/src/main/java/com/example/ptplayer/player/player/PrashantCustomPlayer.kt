@@ -633,7 +633,7 @@ class PrashantCustomPlayer(
         previewLayout.requestLayout()
     }
 
-     fun getVideoFormats() {
+     fun getVideoFormats():ArrayList<Format> {
         val trackSelector = mediaPlayer?.trackSelector as? DefaultTrackSelector
         val mappedTrackInfo = trackSelector?.currentMappedTrackInfo
         videoFormatList.clear()
@@ -645,6 +645,7 @@ class PrashantCustomPlayer(
                 videoFormatList.addAll(getVideoQualityList(override))
             }
         }
+         return videoFormatList
     }
     private fun getVideoQualityList(trackGroups: TrackGroupArray): List<Format> {
         val videoQuality = mutableListOf<Format>()

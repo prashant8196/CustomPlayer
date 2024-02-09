@@ -312,7 +312,7 @@ class PrashantAudioPlayer(
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
             tvContentTitle?.text = contentTitle
-            createNotification()
+            //createNotification()
 
 
         } else {

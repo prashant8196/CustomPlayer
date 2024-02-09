@@ -28,6 +28,7 @@ import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.AdsConfiguration
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
@@ -292,7 +293,7 @@ class PrashantCustomPlayer(
             mediaPlayerView?.keepScreenOn = true
             mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())
-            adsLoader = ImaAdsLoader.Builder(context).build()
+            //adsLoader = ImaAdsLoader.Builder(context).build()
             val subtitle: MutableList<MediaItem.SubtitleConfiguration>?
             val mediaItem = getMediaItem(
                 drm = isDrm,
@@ -300,7 +301,7 @@ class PrashantCustomPlayer(
                 drmLicenseUrl = token,
                 adsUrl = adUrl
             )
-            adsLoader?.setPlayer(mediaPlayer)
+            //adsLoader?.setPlayer(mediaPlayer)
             mediaPlayer?.setMediaItem(mediaItem)
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
@@ -344,7 +345,7 @@ class PrashantCustomPlayer(
             val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
                 .setLicenseUri(drmLicenseUrl)
                 .build()
-            mediaItemBuilder.setDrmConfiguration(drmConfig)
+            mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD).setDrmConfiguration(drmConfig)
         }
 
         if (!adsUrl.isNullOrEmpty()) {

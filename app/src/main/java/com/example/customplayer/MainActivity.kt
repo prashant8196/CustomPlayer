@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
+import androidx.multidex.MultiDex
 import com.example.customplayer.databinding.ActivityMainBinding
 import com.example.ptplayer.player.constants.ContentType
 import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
@@ -25,12 +26,15 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
     private lateinit var binding:ActivityMainBinding
     @OptIn(UnstableApi::class) override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MultiDex.install(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val url = "https://aolvideos.multitvsolution.com/multitv/output/717_62273a8e752c8/717_62273a8e752c8_master.m3u8"
+        val adtag = "https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator="
+        val url = "https://storage.googleapis.com/gvabox/media/samples/stock.mpd"
         val sprite = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.jpg"
         binding.ptPlayer.setContentFilePath(url)
+        binding.ptPlayer.setAdUrl(adtag)
 
        // binding.ptPlayer.setBgImage(url = "https://altb-img.multitvsolution.com/multitv/content/1061_651bac882efbe_854x480.jpg",null)
         binding.ptPlayer.setSpriteData(sprite,false)
@@ -118,7 +122,7 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
     }
 
     @OptIn(UnstableApi::class) override fun onPlayerBackPressed() {
-        //binding.ptPlayer.releasePlayer()
+
     }
 
     override fun onSettingClicked() {

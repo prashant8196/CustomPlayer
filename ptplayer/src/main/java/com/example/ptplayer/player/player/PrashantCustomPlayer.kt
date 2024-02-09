@@ -22,19 +22,27 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.media3.common.AdViewProvider
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaItem.AdsConfiguration
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
+import androidx.media3.exoplayer.ima.ImaAdsLoader
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
+import androidx.media3.exoplayer.source.ads.AdsLoader
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
@@ -60,7 +68,6 @@ import com.example.ptplayer.player.constants.PlayerConstant.MPD
 import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
 import com.example.ptplayer.player.utils.GlideThumbnailTransformation
 import com.example.ptplayer.player.utils.convertSpriteData
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -69,6 +76,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 @UnstableApi
 class PrashantCustomPlayer(
@@ -109,6 +117,7 @@ class PrashantCustomPlayer(
     private var spriteData: Bitmap? = null
     private var spriteUrl: String? = null
     private var videoFormatList = java.util.ArrayList<Format>()
+    private var adsLoader: ImaAdsLoader? = null
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -283,6 +292,7 @@ class PrashantCustomPlayer(
             mediaPlayerView?.keepScreenOn = true
             mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())
+            adsLoader = ImaAdsLoader.Builder(context).build()
             val subtitle: MutableList<MediaItem.SubtitleConfiguration>?
             val mediaItem = getMediaItem(
                 drm = isDrm,
@@ -290,10 +300,13 @@ class PrashantCustomPlayer(
                 drmLicenseUrl = token,
                 adsUrl = adUrl
             )
+            adsLoader?.setPlayer(mediaPlayer)
             mediaPlayer?.setMediaItem(mediaItem)
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
             tvContentTitle?.text = contentTitle
+            //parseSubtitle(contentUrl!!)
+            getVideoFormats()
 
 
         } else {
@@ -311,6 +324,18 @@ class PrashantCustomPlayer(
         subtitle: MutableList<MediaItem.SubtitleConfiguration>? = null
     ): MediaItem {
 
+       /* val dataSourceFactory: DataSource.Factory = DefaultDataSource.Factory(context)
+
+        val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(dataSourceFactory)
+            .setLocalAdInsertionComponents(
+                AdsLoader.Provider { unusedAdTagUri: AdsConfiguration? -> adsLoader }, mediaPlayerView as AdViewProvider)
+
+        // Create an ExoPlayer and set it as the player for content and ads.
+        // Create an ExoPlayer and set it as the player for content and ads.
+        mediaPlayer = ExoPlayer.Builder(context).setMediaSourceFactory(mediaSourceFactory).build()
+        mediaPlayerView?.player = mediaPlayer
+        adsLoader?.setPlayer(mediaPlayer)*/
+
         val mediaItemBuilder = MediaItem.Builder()
             .setUri(videoUrl)
             .setMediaMetadata(MediaMetadata.Builder().setTitle(contentTitle).build())
@@ -325,7 +350,7 @@ class PrashantCustomPlayer(
         if (!adsUrl.isNullOrEmpty()) {
             val adTagUri = Uri.parse(adsUrl)
             mediaItemBuilder.setAdsConfiguration(
-                MediaItem.AdsConfiguration.Builder(adTagUri).build()
+                AdsConfiguration.Builder(adTagUri).build()
             )
         }
 
@@ -412,10 +437,11 @@ class PrashantCustomPlayer(
     }
 
     private fun isDrmContent(videoUrl: String): Boolean {
-        return videoUrl.split("\\.".toRegex())[1] == MPD
+        return videoUrl.split("\\.".toRegex()).last() == MPD
     }
 
     fun setContentFilePath(url: String) {
+        mediaPlayer = null
         contentUrl = url
     }
 
@@ -425,6 +451,12 @@ class PrashantCustomPlayer(
 
     fun startPlayer() {
         initializePlayer()
+    }
+
+    fun parseSubtitle(url:String){
+
+        val parsedUri = Uri.parse(url)
+        parsedUri.queryParameterNames.size
     }
 
     fun pausePlayer() {

@@ -22,28 +22,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.media3.common.AdViewProvider
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.AdsConfiguration
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
-import androidx.media3.exoplayer.ima.ImaAdsLoader
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
-import androidx.media3.exoplayer.source.ads.AdsLoader
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
@@ -118,7 +110,7 @@ class PrashantCustomPlayer(
     private var spriteData: Bitmap? = null
     private var spriteUrl: String? = null
     private var videoFormatList = java.util.ArrayList<Format>()
-    private var adsLoader: ImaAdsLoader? = null
+    //private var adsLoader: ImaAdsLoader? = null
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -200,7 +192,7 @@ class PrashantCustomPlayer(
 
     private fun fetchAllId(view: View) {
 
-        mediaPlayerView = view.findViewById(R.id.media_player_view)
+        mediaPlayerView = view.findViewById(R.id.media_player_view_video)
         skipFwd = view.findViewById(R.id.skip_fwd_btn)
         skipPre = view.findViewById(R.id.skip_pre_btn)
         playButton = view.findViewById(R.id.play_btn)
@@ -285,7 +277,6 @@ class PrashantCustomPlayer(
 
             val customLoadControl = getCustomLoadControl()
             val trackSelector = DefaultTrackSelector(context)
-            trackSelector.currentMappedTrackInfo
             mediaPlayer = getMediaPLayerInstance(customLoadControl, trackSelector)
             mediaPlayer?.addListener(playerStateListener)
             mediaPlayerView?.player = mediaPlayer
@@ -293,7 +284,6 @@ class PrashantCustomPlayer(
             mediaPlayerView?.keepScreenOn = true
             mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())
-            //adsLoader = ImaAdsLoader.Builder(context).build()
             val subtitle: MutableList<MediaItem.SubtitleConfiguration>?
             val mediaItem = getMediaItem(
                 drm = isDrm,
@@ -301,14 +291,10 @@ class PrashantCustomPlayer(
                 drmLicenseUrl = token,
                 adsUrl = adUrl
             )
-            //adsLoader?.setPlayer(mediaPlayer)
+            tvContentTitle?.text = contentTitle
             mediaPlayer?.setMediaItem(mediaItem)
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
-            tvContentTitle?.text = contentTitle
-            //parseSubtitle(contentUrl!!)
-            getVideoFormats()
-
 
         } else {
 
@@ -345,7 +331,7 @@ class PrashantCustomPlayer(
             val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
                 .setLicenseUri(drmLicenseUrl)
                 .build()
-            mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD).setDrmConfiguration(drmConfig)
+            mediaItemBuilder.setDrmConfiguration(drmConfig)
         }
 
         if (!adsUrl.isNullOrEmpty()) {
@@ -455,7 +441,6 @@ class PrashantCustomPlayer(
     }
 
     fun parseSubtitle(url:String){
-
         val parsedUri = Uri.parse(url)
         parsedUri.queryParameterNames.size
     }

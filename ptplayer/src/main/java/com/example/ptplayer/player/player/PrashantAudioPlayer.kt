@@ -349,6 +349,11 @@ class PrashantAudioPlayer(
         mediaSession?.isActive = true
     }
 
+    fun getCurrentMediaInstance() : ExoPlayer{
+
+        return mediaPlayer as ExoPlayer
+    }
+
 
     private inner class MediaSessionCallback : MediaSessionCompat.Callback() {
         override fun onPlay() {
@@ -500,7 +505,7 @@ class PrashantAudioPlayer(
     }
 
     private fun isDrmContent(videoUrl: String): Boolean {
-        return videoUrl.split("\\.".toRegex())[1] == MPD
+        return videoUrl.split("\\.".toRegex()).last() == MPD
     }
 
     fun setContentFilePath(url: String) {
@@ -626,23 +631,6 @@ class PrashantAudioPlayer(
     private fun setFullScreenPlayerLayout() {
         playerSdkCallBack?.onFullScreenEnter()
 
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    fun setSpriteData(spriteUrl: String, toLoadFromBitmap: Boolean) {
-
-        if (toLoadFromBitmap) {
-            GlobalScope.launch {
-                try {
-                    spriteData = convertSpriteData(spriteUrl)
-                } catch (ex: Exception) {
-                    Log.e("SpriteException", "Exception: $ex")
-                }
-            }
-
-        } else {
-            this.spriteUrl = spriteUrl
-        }
     }
 
     private fun loadImage(

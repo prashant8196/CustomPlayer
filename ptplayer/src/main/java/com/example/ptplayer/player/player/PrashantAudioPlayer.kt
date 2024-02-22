@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Context.AUDIO_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.PorterDuff
 import android.media.AudioManager
 import android.media.MediaSession2Service
@@ -75,7 +76,7 @@ import kotlinx.coroutines.withContext
 
 @UnstableApi
 class PrashantAudioPlayer(
-    private val context: AppCompatActivity, attrSet: AttributeSet, defStyleAttr: Int
+    private val context: Context, attrSet: AttributeSet, defStyleAttr: Int
 ) : FrameLayout(context, attrSet, defStyleAttr), OnScrubListener {
 
     private var mediaPlayer: ExoPlayer? = null
@@ -105,8 +106,6 @@ class PrashantAudioPlayer(
     private var screenMode: ImageView? = null
     private var isFullScreen: Int = 0
     private var customControl: ConstraintLayout? = null
-    private var spriteData: Bitmap? = null
-    private var spriteUrl: String? = null
     private var shuffleIcon: ImageView? = null
     private var repeatIcon: ImageView? = null
     private var bannerIcon: ImageView? = null
@@ -118,7 +117,7 @@ class PrashantAudioPlayer(
     private val scope = MainScope()
 
     constructor(context: Context, attrs: AttributeSet) : this(
-        context as AppCompatActivity, attrs, 0
+        context, attrs, 0
     )
 
     override fun onFinishInflate() {
@@ -208,8 +207,8 @@ class PrashantAudioPlayer(
         playerScrub = view.findViewById(R.id.player_scrub)
         volumeSeekBar = view.findViewById(R.id.volume_seekbar)
         customControl = view.findViewById(R.id.custom_control)
-        preTrack = view.findViewById(R.id.exo_prev)
-        nextTrack = view.findViewById(R.id.exo_next)
+        preTrack = view.findViewById(R.id.prev)
+        nextTrack = view.findViewById(R.id.next)
         settings = view.findViewById(R.id.exo_settings)
         screenMode = view.findViewById(R.id.iv_screen_mode)
         moreOptionButton = view.findViewById(R.id.exo_more)
@@ -239,17 +238,6 @@ class PrashantAudioPlayer(
                 val currentPosition = mediaPlayer?.currentPosition
                 val nextPosition = currentPosition?.minus(BACKWARD_INCREMENT)
                 mediaPlayer?.seekTo(nextPosition as Long)
-            }
-
-            R.id.iv_screen_mode -> {
-
-                if (isFullScreen == 0) {
-                    isFullScreen = 1
-                    setFullScreenPlayerLayout()
-                } else {
-                    isFullScreen = 0
-                    setMiniPlayerLayout()
-                }
             }
 
             R.id.exo_settings -> {
@@ -283,6 +271,16 @@ class PrashantAudioPlayer(
                 muteIcon?.isVisible = false
                 volumeIcon?.isVisible = true
             }
+
+            R.id.next ->{
+
+                playerSdkCallBack?.onPlayNextContent()
+            }
+
+            R.id.prev ->{
+
+                playerSdkCallBack?.onPlayPreviousContent()
+            }
         }
     }
 
@@ -312,8 +310,6 @@ class PrashantAudioPlayer(
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
             tvContentTitle?.text = contentTitle
-            //createNotification()
-
 
         } else {
 
@@ -340,7 +336,7 @@ class PrashantAudioPlayer(
                 .build()
         )
 
-        initializeMediaSession()
+        //initializeMediaSession()
     }
 
     private fun initializeMediaSession() {
@@ -410,9 +406,9 @@ class PrashantAudioPlayer(
             .setMediaMetadata(MediaMetadata.Builder().setTitle(contentTitle).build())
 
         if (drm && !drmLicenseUrl.isNullOrEmpty()) {
-            val drmConfig =
-                MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID).setLicenseUri(drmLicenseUrl)
-                    .build()
+            val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                .setLicenseUri(drmLicenseUrl)
+                .build()
             mediaItemBuilder.setDrmConfiguration(drmConfig)
         }
 
@@ -624,15 +620,6 @@ class PrashantAudioPlayer(
         }
     }
 
-    private fun setMiniPlayerLayout() {
-        playerSdkCallBack?.onFullScreenExit()
-    }
-
-    private fun setFullScreenPlayerLayout() {
-        playerSdkCallBack?.onFullScreenEnter()
-
-    }
-
     private fun loadImage(
         url: String,
         imageview: ImageView,
@@ -681,6 +668,24 @@ class PrashantAudioPlayer(
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    fun focusNextPrevButton(
+        nextButtonFocusable: Boolean,
+        previousButtonFocusable: Boolean
+    ) {
+        nextTrack?.isFocusable = nextButtonFocusable
+        preTrack?.isFocusable = previousButtonFocusable
+        if (nextButtonFocusable){
+            nextTrack?.setColorFilter(getContext().resources.getColor(R.color.white))
+        }else{
+            nextTrack?.setColorFilter(getContext().resources.getColor(R.color.grey))
+        }
+        if (previousButtonFocusable){
+            preTrack?.setColorFilter(getContext().resources.getColor(R.color.white))
+        }else{
+            preTrack?.setColorFilter(getContext().resources.getColor(R.color.grey))
+        }
     }
 
     companion object {

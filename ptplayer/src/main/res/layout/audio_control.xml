@@ -123,7 +123,7 @@
         tools:visibility="visible">
 
         <ImageView
-            android:id="@+id/exo_prev"
+            android:id="@+id/prev"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:clickable="true"
@@ -153,7 +153,7 @@
             />
 
         <ImageView
-            android:id="@+id/exo_next"
+            android:id="@+id/next"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_marginEnd="220dp"
@@ -171,8 +171,8 @@
             android:clickable="true"
             android:contentDescription="@string/click_to_open_settings"
             android:focusable="true"
-            android:nextFocusLeft="@id/exo_prev"
-            android:nextFocusRight="@id/exo_repeat"
+            android:nextFocusLeft="@id/prev"
+            android:nextFocusRight="@id/volume_btn"
             android:padding="1dp"
             android:src="@drawable/dot_player" />
 

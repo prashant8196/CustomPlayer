@@ -29,8 +29,8 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         MultiDex.install(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val url = "https://aolvideos.multitvsolution.com/obs/output/717_5fe1a45da2e2c/dash/master.mpd"
-        binding.ptPlayer.setKeyToken("https://widevine-dash.ezdrm.com/widevine-php/widevine-foreignkey.php?pX=63CF74&user_id=ODkwMjEx&type=widevine&authorization=ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmhkWFJvYjNKcGVtVmtJanAwY25WbExDSjFjMlZ5Ym1GdFpTSTZJbVJsWm1GMWJIUmZZV1J0YVc0aUxDSjBiMnRsYmlJNklqVm1aREZqWmpKbVl6bG1ORFVpTENKaGNIQmZhV1FpT2pjeE55d2liM2R1WlhKZmFXUWlPalUzTUN3aVlYQndYMjVoYldVaU9pSmtaV1poZFd4MFgyRmtiV2x1SWl3aVpYaHdJam94TnpBM09UYzVNREl3ZlEuM1dIaG9SUHZFcTNTYWwyZ1ZhWk1HWFFKdWZKeEhKcEV2ejlORXprMXh0dw==&payload=eyJjb250ZW50X2lkIjoiMTAxNTEwIiwia19pZCI6IjNiZmZjYWZhZTYzYjQ5NTk4YjRiMDdkMDEzNTk1MDY1IiwidXNlcl9pZCI6Ijg5MDIxMSIsInBhY2thZ2VfaWQiOiIxIiwibGljZW5jZV9kdXJhdGlvbiI6IjUwMDAiLCJzZWN1cml0eV9sZXZlbCI6IjAiLCJyZW50YWxfZHVyYXRpb24iOiIwIiwiY29udGVudF90eXBlIjoiMSIsImRvd25sb2FkIjoiMSJ9")
+        val url = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8"
+       // binding.ptPlayer.setKeyToken("https://widevine-dash.ezdrm.com/widevine-php/widevine-foreignkey.php?pX=63CF74&user_id=ODkwMjEx&type=widevine&authorization=ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmhkWFJvYjNKcGVtVmtJanAwY25WbExDSjFjMlZ5Ym1GdFpTSTZJbVJsWm1GMWJIUmZZV1J0YVc0aUxDSjBiMnRsYmlJNklqVm1aREZqWmpKbVl6bG1ORFVpTENKaGNIQmZhV1FpT2pjeE55d2liM2R1WlhKZmFXUWlPalUzTUN3aVlYQndYMjVoYldVaU9pSmtaV1poZFd4MFgyRmtiV2x1SWl3aVpYaHdJam94TnpBM09UYzVNREl3ZlEuM1dIaG9SUHZFcTNTYWwyZ1ZhWk1HWFFKdWZKeEhKcEV2ejlORXprMXh0dw==&payload=eyJjb250ZW50X2lkIjoiMTAxNTEwIiwia19pZCI6IjNiZmZjYWZhZTYzYjQ5NTk4YjRiMDdkMDEzNTk1MDY1IiwidXNlcl9pZCI6Ijg5MDIxMSIsInBhY2thZ2VfaWQiOiIxIiwibGljZW5jZV9kdXJhdGlvbiI6IjUwMDAiLCJzZWN1cml0eV9sZXZlbCI6IjAiLCJyZW50YWxfZHVyYXRpb24iOiIwIiwiY29udGVudF90eXBlIjoiMSIsImRvd25sb2FkIjoiMSJ9")
         //val sprite = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/thumbnails/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.jpg"
         binding.ptPlayer.setContentFilePath(url)
 
@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         binding.ptPlayer.setContentMetaData(ContentType.VOD,"Sample","11634")
         binding.ptPlayer.setVideoPlayerSdkListener(this)
         binding.ptPlayer.startPlayer()
+        binding.ptPlayer.focusNextPrevButton(false,true)
 
     }
 

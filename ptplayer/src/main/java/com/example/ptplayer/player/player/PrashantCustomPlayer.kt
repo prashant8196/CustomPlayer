@@ -3,6 +3,8 @@ package com.example.ptplayer.player.player
 import android.content.Context
 import android.content.Context.AUDIO_SERVICE
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Color.*
 import android.graphics.PorterDuff
 import android.media.AudioManager
 import android.net.Uri
@@ -265,6 +267,15 @@ class PrashantCustomPlayer(
                 volumeIcon?.isVisible = true
             }
 
+            R.id.previous ->{
+
+                playerSdkCallBack?.onPlayPreviousContent()
+            }
+
+            R.id.next ->{
+
+                playerSdkCallBack?.onPlayNextContent()
+            }
         }
     }
 
@@ -312,13 +323,9 @@ class PrashantCustomPlayer(
     ): MediaItem {
 
        /* val dataSourceFactory: DataSource.Factory = DefaultDataSource.Factory(context)
-
         val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(dataSourceFactory)
             .setLocalAdInsertionComponents(
                 AdsLoader.Provider { unusedAdTagUri: AdsConfiguration? -> adsLoader }, mediaPlayerView as AdViewProvider)
-
-        // Create an ExoPlayer and set it as the player for content and ads.
-        // Create an ExoPlayer and set it as the player for content and ads.
         mediaPlayer = ExoPlayer.Builder(context).setMediaSourceFactory(mediaSourceFactory).build()
         mediaPlayerView?.player = mediaPlayer
         adsLoader?.setPlayer(mediaPlayer)*/
@@ -710,6 +717,25 @@ class PrashantCustomPlayer(
     }
 
     fun setSubtitles(){
+
+    }
+
+    fun focusNextPrevButton(
+        nextButtonVisibility: Boolean,
+        previousButtonVisibility: Boolean
+    ) {
+        nextTrack?.isFocusable = nextButtonVisibility
+        preTrack?.isFocusable = previousButtonVisibility
+        if (nextButtonVisibility){
+            nextTrack?.setColorFilter(getContext().resources.getColor(R.color.white))
+        }else{
+            nextTrack?.setColorFilter(getContext().resources.getColor(R.color.grey))
+        }
+        if (previousButtonVisibility){
+            preTrack?.setColorFilter(getContext().resources.getColor(R.color.white))
+        }else{
+            preTrack?.setColorFilter(getContext().resources.getColor(R.color.grey))
+        }
 
     }
 }

@@ -5,4 +5,4 @@ before_install:
   - ./scripts/prepareJitpackEnvironment.sh
 install:
   - FILE="-Dfile=ptplayer-release.aar"
-  - mvn install:install-file $FILE -DgroupId=com.github.prashant8196 -DartifactId=CustomPlayer -Dversion=1.2.7 -Dpackaging=aar -DgeneratePom=true
+  - mvn install:install-file $FILE -DgroupId=com.github.prashant8196 -DartifactId=CustomPlayer -Dversion=1.2.8 -Dpackaging=aar -DgeneratePom=true

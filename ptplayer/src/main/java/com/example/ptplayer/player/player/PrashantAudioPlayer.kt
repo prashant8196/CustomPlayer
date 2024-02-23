@@ -277,11 +277,13 @@ class PrashantAudioPlayer(
             R.id.next ->{
 
                 playerSdkCallBack?.onPlayNextContent()
+                nextTrack?.requestFocus()
             }
 
             R.id.prev ->{
 
                 playerSdkCallBack?.onPlayPreviousContent()
+                preTrack?.requestFocus()
             }
         }
     }

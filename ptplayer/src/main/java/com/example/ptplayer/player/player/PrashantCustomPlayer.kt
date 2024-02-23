@@ -249,6 +249,7 @@ class PrashantCustomPlayer(
 
                 volumeIcon?.isVisible = false
                 muteIcon?.isVisible = true
+                muteIcon?.requestFocus()
                 currentVolume = mediaPlayer?.volume
                 mediaPlayer?.volume = 0f
             }
@@ -258,16 +259,20 @@ class PrashantCustomPlayer(
                 mediaPlayer?.volume = currentVolume as Float
                 muteIcon?.isVisible = false
                 volumeIcon?.isVisible = true
+                volumeIcon?.requestFocus()
             }
 
             R.id.previous ->{
 
                 playerSdkCallBack?.onPlayPreviousContent()
+                preTrack?.requestFocus()
+
             }
 
             R.id.next ->{
 
                 playerSdkCallBack?.onPlayNextContent()
+                nextTrack?.requestFocus()
             }
         }
     }

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.prashant8196</groupId>
     <artifactId>CustomPlayer</artifactId>
-    <version>1.2.6</version>
+    <version>1.2.7</version>
     <packaging>pom</packaging>
     <description>DESCRIPTION</description>
 </project>

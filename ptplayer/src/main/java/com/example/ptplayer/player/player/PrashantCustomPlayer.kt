@@ -107,7 +107,6 @@ class PrashantCustomPlayer(
     private var volumeSeekBar: SeekBar? = null
     private var audioManager: AudioManager? = null
     private var screenMode: ImageView? = null
-    private var isFullScreen: Int = 0
     private var customControl: ConstraintLayout? = null
     private var spriteData: Bitmap? = null
     private var spriteUrl: String? = null
@@ -237,43 +236,33 @@ class PrashantCustomPlayer(
             }
 
             R.id.iv_screen_mode -> {
-
-                if (isFullScreen == 0) {
-                    isFullScreen = 1
-                    setFullScreenPlayerLayout()
-                } else {
-                    isFullScreen = 0
-                    setMiniPlayerLayout()
-                }
+                setMiniPlayerLayout()
             }
 
             R.id.exo_settings -> {
-
                 playerSdkCallBack?.onSettingClicked()
             }
 
             R.id.volume_btn ->{
-
                 volumeIcon?.isVisible = false
                 muteIcon?.isVisible = true
+                muteIcon?.requestFocus()
                 currentVolume = mediaPlayer?.volume
                 mediaPlayer?.volume = 0f
             }
 
             R.id.mute_btn ->{
-
                 mediaPlayer?.volume = currentVolume as Float
                 muteIcon?.isVisible = false
                 volumeIcon?.isVisible = true
+                volumeIcon?.requestFocus()
             }
 
             R.id.previous ->{
-
                 playerSdkCallBack?.onPlayPreviousContent()
             }
 
             R.id.next ->{
-
                 playerSdkCallBack?.onPlayNextContent()
             }
         }
@@ -587,22 +576,6 @@ class PrashantCustomPlayer(
         mediaPlayerView?.showController()
         playerSdkCallBack?.onFullScreenEnter()
 
-    }
-
-    fun setMiniPlayerLayout(flag:Boolean){
-        if (flag){
-            mediaPlayerView?.hideController()
-            mediaPlayerView?.useController = false
-            mediaPlayerView?.isFocusable = false
-            mediaPlayerView?.isClickable = false
-            playerSdkCallBack?.onFullScreenExit()
-        }else{
-            mediaPlayerView?.useController = true
-            mediaPlayerView?.showController()
-            mediaPlayerView?.isFocusable = true
-            mediaPlayerView?.isClickable = true
-            playerSdkCallBack?.onFullScreenEnter()
-        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

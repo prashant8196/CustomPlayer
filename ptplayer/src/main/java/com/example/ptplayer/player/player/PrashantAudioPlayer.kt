@@ -261,6 +261,7 @@ class PrashantAudioPlayer(
 
                 volumeIcon?.isVisible = false
                 muteIcon?.isVisible = true
+                muteIcon?.requestFocus()
                 currentVolume = mediaPlayer?.volume
                 mediaPlayer?.volume = 0f
             }
@@ -270,6 +271,7 @@ class PrashantAudioPlayer(
                 mediaPlayer?.volume = currentVolume as Float
                 muteIcon?.isVisible = false
                 volumeIcon?.isVisible = true
+                volumeIcon?.requestFocus()
             }
 
             R.id.next ->{
@@ -296,7 +298,6 @@ class PrashantAudioPlayer(
             mediaPlayer = getMediaPLayerInstance(customLoadControl, trackSelector)
             mediaPlayer?.addListener(playerStateListener)
             mediaPlayerView?.player = mediaPlayer
-            //mediaPlayerView?.controllerHideOnTouch = true
             mediaPlayerView?.keepScreenOn = true
             mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())

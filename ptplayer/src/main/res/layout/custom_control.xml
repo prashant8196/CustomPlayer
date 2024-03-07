@@ -96,7 +96,7 @@
             android:layout_marginHorizontal="25dp"
             android:padding="2dp"
             android:visibility="gone"
-            android:src="@drawable/playicon"
+            android:src="@drawable/play_btn_image"
             android:contentDescription="@string/play_the_video"
             android:focusable="true" />
         <ImageView
@@ -106,7 +106,7 @@
             android:clickable="true"
             android:layout_marginHorizontal="25dp"
             android:padding="2dp"
-            android:src="@drawable/baseline_pause_24"
+            android:src="@drawable/pause_btn_image"
             android:contentDescription="@string/play_the_video"
             android:focusable="true" />
 
@@ -220,7 +220,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="1dp"
-                android:src="@drawable/maximise"
+                android:src="@drawable/ic_minimize"
                 android:contentDescription="@string/click_to_maximise_the_player_view"/>
 
         </LinearLayout>
@@ -293,7 +293,7 @@
             android:scaleType="fitXY" />
     </FrameLayout>
 
-    <androidx.media3.ui.DefaultTimeBar
+    <com.example.ptplayer.player.utils.CustomTimeBar
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:clickable="true"
@@ -315,6 +315,6 @@
         android:id="@+id/player_scrub"
         tools:targetApi="o">
 
-    </androidx.media3.ui.DefaultTimeBar>
+    </com.example.ptplayer.player.utils.CustomTimeBar>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

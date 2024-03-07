@@ -32,6 +32,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         app:layout_constraintBottom_toTopOf="@id/guideline"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,8 +43,7 @@
             android:id="@+id/backgroundBanner"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            />
+            android:scaleType="fitXY" />
 
         <View
             android:id="@+id/gradient_bottom"
@@ -51,8 +52,8 @@
             app:layout_constraintBottom_toBottomOf="@id/backgroundBanner"
             android:background="@drawable/audio_scrim_bottom"
             app:layout_constraintTop_toTopOf="@id/backgroundBanner"
-            app:layout_constraintStart_toStartOf="@id/backgroundBanner"
-            />
+            app:layout_constraintStart_toStartOf="@id/backgroundBanner" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -149,7 +150,7 @@
             android:contentDescription="@string/play_the_video"
             android:focusable="true"
             android:visibility="visible"
-            android:src="@drawable/baseline_pause_24"
+            android:src="@drawable/pause_btn_image"
             />
 
         <ImageView

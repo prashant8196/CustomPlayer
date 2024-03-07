@@ -301,7 +301,6 @@ class PrashantAudioPlayer(
             mediaPlayer?.addListener(playerStateListener)
             mediaPlayerView?.player = mediaPlayer
             mediaPlayerView?.keepScreenOn = true
-            mediaPlayerView?.setControllerHideDuringAds(true)
             val isDrm = isDrmContent(contentUrl.toString())
             val mediaItem = getMediaItem(
                 drm = isDrm,
@@ -688,6 +687,15 @@ class PrashantAudioPlayer(
             preTrack?.setColorFilter(getContext().resources.getColor(R.color.white))
         }else{
             preTrack?.setColorFilter(getContext().resources.getColor(R.color.grey))
+        }
+    }
+
+    fun requestFocusOnPlayPause(){
+
+        if (pauseButton?.isVisible == true){
+            pauseButton!!.requestFocus()
+        }else{
+            playButton?.requestFocus()
         }
     }
 

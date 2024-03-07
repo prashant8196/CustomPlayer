@@ -13,6 +13,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.PointerIcon
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
@@ -188,7 +189,6 @@ class PrashantCustomPlayer(
         settings?.onFocusChangeListener = onFocusChangeListener
         scrubImage?.onFocusChangeListener = onFocusChangeListener
         screenMode?.onFocusChangeListener = onFocusChangeListener
-        playerScrub?.onFocusChangeListener = onFocusChangeListener
 
     }
 

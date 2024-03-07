@@ -35,11 +35,12 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
         binding.ptPlayer.setContentFilePath(url)
 
         //binding.ptPlayer.setBgImage(url = "https://altb-img.multitvsolution.com/multitv/content/1061_651bac882efbe_854x480.jpg",null)
-        binding.ptPlayer.setSpriteData(sprite,false)
+        //binding.ptPlayer.setSpriteData(sprite,false)
         binding.ptPlayer.setContentMetaData(ContentType.VOD,"Sample","11634")
         binding.ptPlayer.setVideoPlayerSdkListener(this)
         binding.ptPlayer.startPlayer()
         binding.ptPlayer.focusNextPrevButton(false,true)
+        binding.ptPlayer.requestFocusOnPlayPause()
 
     }
 

@@ -3,7 +3,6 @@ package com.example.ptplayer.player.player
 import android.content.Context
 import android.content.Context.AUDIO_SERVICE
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.Color.*
 import android.graphics.PorterDuff
 import android.media.AudioManager
@@ -13,18 +12,19 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.PointerIcon
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.media3.common.AdViewProvider
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
@@ -35,9 +35,14 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
+import androidx.media3.exoplayer.ima.ImaAdsLoader
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
@@ -64,6 +69,8 @@ import com.example.ptplayer.player.constants.PlayerConstant.MPD
 import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
 import com.example.ptplayer.player.utils.GlideThumbnailTransformation
 import com.example.ptplayer.player.utils.convertSpriteData
+import com.google.ads.interactivemedia.v3.api.AdEvent
+import com.google.ads.interactivemedia.v3.api.AdsManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -91,6 +98,7 @@ class PrashantCustomPlayer(
     private var token: String? = null
     private var adUrl: String? = null
     private var currentVolume:Float? = null
+    private var adsLoader: ImaAdsLoader? = null
 
     private var skipPre: ImageView? = null
     private var playButton: ImageView? = null
@@ -101,6 +109,7 @@ class PrashantCustomPlayer(
     private var volumeIcon: ImageView? = null
     private var muteIcon:ImageView? = null
     private var settings: ImageView? = null
+    private var replay:ImageView? = null
     private var scrubImage: ImageView? = null
     private var playerScrub: DefaultTimeBar? = null
     private var flPreview: FrameLayout? = null
@@ -113,7 +122,10 @@ class PrashantCustomPlayer(
     private var spriteData: Bitmap? = null
     private var spriteUrl: String? = null
     private var videoFormatList = java.util.ArrayList<Format>()
-    //private var adsLoader: ImaAdsLoader? = null
+    private var isReplayEnabled:Boolean = false
+    private var llCentre: LinearLayout? = null
+    private var llBottom: LinearLayout? = null
+    private var clTime:ConstraintLayout? = null
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -121,6 +133,30 @@ class PrashantCustomPlayer(
     constructor(context: Context, attrs: AttributeSet) : this(
         context as AppCompatActivity, attrs, 0
     )
+
+    private fun buildAdEventListener(): AdEvent.AdEventListener {
+        return AdEvent.AdEventListener { adEvent ->
+            // Handle ad events
+            when (adEvent.type) {
+                AdEvent.AdEventType.LOADED -> {
+                    // Ad loaded
+                    val loaded = 1
+                }
+
+                AdEvent.AdEventType.STARTED -> {
+                    val loaded = 1
+                }
+
+                AdEvent.AdEventType.COMPLETED -> {
+                    val loaded = 1
+                }
+                // Handle other ad event types as needed
+                else -> {
+
+                }
+            }
+        }
+    }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -173,6 +209,7 @@ class PrashantCustomPlayer(
         settings?.setOnKeyListener(enterKeyListener)
         scrubImage?.setOnKeyListener(enterKeyListener)
         screenMode?.setOnKeyListener(enterKeyListener)
+        replay?.setOnKeyListener(enterKeyListener)
         playerScrub?.addListener(this)
     }
 
@@ -189,6 +226,7 @@ class PrashantCustomPlayer(
         settings?.onFocusChangeListener = onFocusChangeListener
         scrubImage?.onFocusChangeListener = onFocusChangeListener
         screenMode?.onFocusChangeListener = onFocusChangeListener
+        replay?.onFocusChangeListener = onFocusChangeListener
 
     }
 
@@ -211,6 +249,10 @@ class PrashantCustomPlayer(
         nextTrack = view.findViewById(R.id.next)
         settings = view.findViewById(R.id.exo_settings)
         screenMode = view.findViewById(R.id.iv_screen_mode)
+        llCentre = view.findViewById(R.id.ll_centre)
+        llBottom = view.findViewById(R.id.ll_bottom)
+        clTime = view.findViewById(R.id.cl_time)
+        replay = view.findViewById(R.id.replay)
 
     }
 
@@ -274,6 +316,10 @@ class PrashantCustomPlayer(
                 playerSdkCallBack?.onPlayNextContent()
                 nextTrack?.requestFocus()
             }
+
+            R.id.replay ->{
+                initializePlayer()
+            }
         }
     }
 
@@ -282,6 +328,11 @@ class PrashantCustomPlayer(
         if (mediaPlayer != null) {
             mediaPlayer?.release()
         }
+
+        hideControlWithReplay(false)
+       /* adsLoader = ImaAdsLoader.Builder(context)
+            .setAdEventListener(buildAdEventListener())
+            .build()*/
         if (contentUrl?.isNotEmpty() == true) {
 
             val customLoadControl = getCustomLoadControl()
@@ -310,6 +361,10 @@ class PrashantCustomPlayer(
             playerSdkCallBack?.onThrowCustomError(INVALID_CONTENT_ID)
 
         }
+    }
+
+    fun setReplayMode(isReplay:Boolean){
+        isReplayEnabled = isReplay
     }
 
     private fun getMediaItem(
@@ -413,7 +468,12 @@ class PrashantCustomPlayer(
 
                 Player.STATE_ENDED -> {
                     stopUpdates()
-                    playerSdkCallBack?.onPlayNextContent()
+                    if (isReplayEnabled){
+                        hideControlWithReplay(true)
+                    }else{
+                        hideControlWithReplay(false)
+                        playerSdkCallBack?.onPlayNextContent()
+                    }
                 }
             }
         }
@@ -430,6 +490,22 @@ class PrashantCustomPlayer(
 
     private fun isDrmContent(videoUrl: String): Boolean {
         return videoUrl.split("\\.".toRegex()).last() == MPD
+    }
+
+    fun hideControlWithReplay(hide:Boolean){
+        if (hide){
+            replay?.isVisible = true
+            llCentre?.isVisible = false
+            llBottom?.isVisible = false
+            playerScrub?.isVisible = false
+            clTime?.isVisible = false
+        }else{
+            replay?.isVisible = false
+            llCentre?.isVisible = true
+            llBottom?.isVisible = true
+            playerScrub?.isVisible = true
+            clTime?.isVisible = true
+        }
     }
 
     fun setContentFilePath(url: String) {
@@ -487,6 +563,39 @@ class PrashantCustomPlayer(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun getMediaItemWithAd(
+        drm: Boolean, videoUrl: String,
+        drmLicenseUrl: String? = null,
+        adsUrl: String? = null,
+        subtitle: MediaItem.SubtitleConfiguration? = null
+    ): MediaItem {
+
+        val dataSourceFactory: DataSource.Factory = DefaultDataSource.Factory(context)
+        val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(dataSourceFactory)
+            .setLocalAdInsertionComponents(
+                {
+                    adsLoader
+                },
+                mediaPlayerView as AdViewProvider
+            )
+
+        // Create an ExoPlayer and set it as the player for content and ads.
+        mediaPlayer = ExoPlayer.Builder(context).setMediaSourceFactory(mediaSourceFactory).build()
+        mediaPlayerView?.player = mediaPlayer
+        adsLoader!!.setPlayer(mediaPlayer)
+
+        // Create the MediaItem to play, specifying the content URI and ad tag URI.
+        val contentUri = Uri.parse("https://storage.googleapis.com/gvabox/media/samples/stock.mp4")
+        val adTagUri =
+            Uri.parse("https://pubads.g.doubleclick.net/gampad/ads?iu=/23078103558/home_video_ad_unit&description_url=http%3A%2F%2Fwww.multitvsolution.com&tfcd=0&npa=0&sz=400x300%7C640x480&ciu_szs=480x320%2C300x250&gdfp_req=1&output=vast&env=vp&unviewed_position_start=1&impl=s&correlator=")
+
+        return MediaItem.Builder()
+            .setUri(contentUri)
+            .setAdsConfiguration(AdsConfiguration.Builder(adTagUri).build())
+            .build()
+
     }
 
     fun setKeyToken(key: String) {
@@ -697,10 +806,6 @@ class PrashantCustomPlayer(
         mediaPlayerView?.showController()
     }
 
-    fun setSubtitles(){
-
-    }
-
     fun focusNextPrevButton(
         nextButtonVisibility: Boolean,
         previousButtonVisibility: Boolean
@@ -717,6 +822,5 @@ class PrashantCustomPlayer(
         }else{
             preTrack?.setColorFilter(getContext().resources.getColor(R.color.grey))
         }
-
     }
 }

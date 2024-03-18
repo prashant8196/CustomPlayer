@@ -4,18 +4,13 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Context.AUDIO_SERVICE
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.PorterDuff
 import android.media.AudioManager
-import android.media.MediaSession2Service
 import android.net.Uri
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -23,9 +18,9 @@ import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -40,7 +35,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
-import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
@@ -49,7 +43,6 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
 import androidx.media3.ui.TimeBar.OnScrubListener
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.Target
 import com.example.ptplayer.R
 import com.example.ptplayer.player.constants.ContentType
 import com.example.ptplayer.player.constants.PlayerConstant.ALLOCATION_SIZE
@@ -63,11 +56,7 @@ import com.example.ptplayer.player.constants.PlayerConstant.MAX_BUFFER_DURATION
 import com.example.ptplayer.player.constants.PlayerConstant.MIN_BUFFER_DURATION
 import com.example.ptplayer.player.constants.PlayerConstant.MPD
 import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
-import com.example.ptplayer.player.utils.GlideThumbnailTransformation
-import com.example.ptplayer.player.utils.convertSpriteData
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
@@ -112,6 +101,9 @@ class PrashantAudioPlayer(
     private var shuffleState:Boolean? = false
     private var mediaSession: MediaSessionCompat? = null
     private var currentVolume:Float? = null
+    private var llBottom:LinearLayout? = null
+    private var isRepeatModeEnabled:Boolean = false
+    private var repeatModeSingle:ImageView? = null
 
     private var job: Job? = null
     private val scope = MainScope()
@@ -171,6 +163,7 @@ class PrashantAudioPlayer(
         moreOptionButton?.setOnKeyListener(enterKeyListener)
         shuffleIcon?.setOnKeyListener(enterKeyListener)
         repeatIcon?.setOnKeyListener(enterKeyListener)
+        repeatModeSingle?.setOnKeyListener(enterKeyListener)
     }
 
     private fun setOnFocusListenerOnViews(onFocusChangeListener: OnFocusChangeListener) {
@@ -190,6 +183,7 @@ class PrashantAudioPlayer(
         shuffleIcon?.onFocusChangeListener = onFocusChangeListener
         repeatIcon?.onFocusChangeListener = onFocusChangeListener
         moreOptionButton?.onFocusChangeListener = onFocusChangeListener
+        repeatModeSingle?.onFocusChangeListener = onFocusChangeListener
 
     }
 
@@ -213,8 +207,10 @@ class PrashantAudioPlayer(
         screenMode = view.findViewById(R.id.iv_screen_mode)
         moreOptionButton = view.findViewById(R.id.exo_more)
         shuffleIcon = view.findViewById(R.id.exo_shuffle)
-        repeatIcon = view.findViewById(R.id.exo_repeat)
+        repeatIcon = view.findViewById(R.id.repeat_off)
         bannerIcon = view.findViewById(R.id.backgroundBanner)
+        llBottom  = view.findViewById(R.id.ll_bottom_end)
+        repeatModeSingle = view.findViewById(R.id.repeat_toggle)
 
     }
 
@@ -253,7 +249,8 @@ class PrashantAudioPlayer(
                 playerSdkCallBack?.onShuffleClicked(shuffleState!!)
             }
 
-            R.id.exo_repeat -> {
+            R.id.repeat_off -> {
+                setRepeatModelEnabled(isEnabled = true, focusFlag = false)
                 playerSdkCallBack?.onRepeatClicked()
             }
 
@@ -284,6 +281,10 @@ class PrashantAudioPlayer(
 
                 playerSdkCallBack?.onPlayPreviousContent()
                 preTrack?.requestFocus()
+            }
+
+            R.id.repeat_toggle ->{
+                setRepeatModelEnabled(isEnabled = false, focusFlag = false)
             }
         }
     }
@@ -339,6 +340,27 @@ class PrashantAudioPlayer(
         )
 
         //initializeMediaSession()
+    }
+
+    fun setRadioView(isRadio:Boolean){
+        llBottom?.isVisible = !isRadio
+        playerScrub?.isFocusable = !isRadio
+        moreOptionButton?.isVisible = !isRadio
+    }
+
+    fun setRepeatModelEnabled(isEnabled:Boolean,focusFlag:Boolean? = true){
+        isRepeatModeEnabled = isEnabled
+        repeatModeSingle?.isVisible = isEnabled
+        repeatModeSingle?.isFocusable = isEnabled
+        repeatIcon?.isVisible = !isEnabled
+        repeatIcon?.isFocusable = !isEnabled
+        if (repeatModeSingle?.isVisible  == true && focusFlag == false){
+            repeatModeSingle?.requestFocus()
+        }else{
+            if (focusFlag == false){
+                repeatIcon?.requestFocus()
+            }
+        }
     }
 
     private fun initializeMediaSession() {
@@ -487,7 +509,11 @@ class PrashantAudioPlayer(
                 Player.STATE_ENDED -> {
                     stopUpdates()
                     playerSdkCallBack?.onVideoStop()
-                    playerSdkCallBack?.onPlayNextContent()
+                    if (isRepeatModeEnabled){
+                        initializePlayer()
+                    }else{
+                        playerSdkCallBack?.onPlayNextContent()
+                    }
                 }
             }
         }

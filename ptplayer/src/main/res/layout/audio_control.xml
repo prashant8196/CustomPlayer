@@ -28,7 +28,6 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.85" />
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -123,63 +122,71 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible">
 
-        <ImageView
-            android:id="@+id/prev"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:clickable="true"
-            android:contentDescription="@string/back_button_for_previous_video"
-            android:focusable="true"
-            android:padding="1dp"
-            android:src="@drawable/preback" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5">
 
-        <ImageView
-            android:id="@+id/play_btn"
-            android:layout_width="40dp"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:src="@drawable/playicon"
-            android:visibility="gone" />
+            <ImageView
+                android:id="@+id/prev"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:clickable="true"
+                android:contentDescription="@string/back_button_for_previous_video"
+                android:focusable="true"
+                android:padding="1dp"
+                android:src="@drawable/preback" />
 
-        <ImageView
-            android:id="@+id/pause_btn"
-            android:layout_width="40dp"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:contentDescription="@string/play_the_video"
-            android:focusable="true"
-            android:visibility="visible"
-            android:src="@drawable/pause_btn_image"
-            />
+            <ImageView
+                android:id="@+id/play_btn"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/playicon"
+                android:visibility="gone" />
 
-        <ImageView
-            android:id="@+id/next"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginEnd="220dp"
-            android:clickable="true"
-            android:contentDescription="@string/button_for_playing_next_video"
-            android:focusable="true"
-            android:padding="1dp"
-            android:src="@drawable/nextplayback" />
+            <ImageView
+                android:id="@+id/pause_btn"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:contentDescription="@string/play_the_video"
+                android:focusable="true"
+                android:visibility="visible"
+                android:src="@drawable/pause_btn_image"
+                />
 
-        <ImageView
-            android:id="@+id/exo_more"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="start"
-            android:clickable="true"
-            android:contentDescription="@string/click_to_open_settings"
-            android:focusable="true"
-            android:nextFocusLeft="@id/prev"
-            android:nextFocusRight="@id/volume_btn"
-            android:padding="1dp"
-            android:src="@drawable/dot_player" />
+            <ImageView
+                android:id="@+id/next"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="220dp"
+                android:clickable="true"
+                android:contentDescription="@string/button_for_playing_next_video"
+                android:focusable="true"
+                android:padding="1dp"
+                android:src="@drawable/nextplayback" />
+
+            <ImageView
+                android:id="@+id/exo_more"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="start"
+                android:clickable="true"
+                android:contentDescription="@string/click_to_open_settings"
+                android:focusable="true"
+                android:nextFocusLeft="@id/prev"
+                android:nextFocusRight="@id/volume_btn"
+                android:padding="1dp"
+                android:src="@drawable/dot_player" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/ll_bottom_end"
-            android:layout_width="496dp"
+            android:layout_weight="0.5"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_gravity="end"
             android:layout_marginEnd="30dp"
@@ -202,12 +209,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:clickable="true"
-                android:visibility="gone"
                 android:contentDescription="@string/volume_icon"
                 android:focusable="true"
                 android:nextFocusRight="@id/exo_settings"
                 android:padding="1dp"
-                android:src="@drawable/volume_off"/>
+                android:src="@drawable/volume_off"
+                android:visibility="gone" />
 
             <SeekBar
                 android:id="@+id/volume_seekbar"
@@ -224,8 +231,8 @@
             </SeekBar>
 
             <ImageView
-                android:id="@+id/exo_repeat"
-                android:layout_width="wrap_content"
+                android:id="@+id/repeat_off"
+                android:layout_width="60dp"
                 android:layout_height="40dp"
                 android:clickable="true"
                 android:contentDescription="@string/click_to_open_settings"
@@ -233,6 +240,18 @@
                 android:nextFocusLeft="@id/exo_more"
                 android:padding="1dp"
                 android:src="@drawable/icon_repeat" />
+
+            <ImageView
+                android:id="@+id/repeat_toggle"
+                android:layout_width="60dp"
+                android:layout_height="40dp"
+                android:clickable="true"
+                android:contentDescription="@string/click_to_open_settings"
+                android:focusable="true"
+                android:visibility="gone"
+                android:nextFocusLeft="@id/exo_more"
+                android:padding="1dp"
+                android:src="@drawable/repeat_mode" />
 
             <ImageView
                 android:id="@+id/exo_shuffle"
@@ -290,6 +309,7 @@
     <androidx.media3.ui.DefaultTimeBar
         android:id="@+id/player_scrub"
         android:layout_width="match_parent"
+        android:background="@color/grey"
         android:layout_height="2dp"
         android:layout_marginHorizontal="30dp"
         android:layout_marginVertical="10dp"

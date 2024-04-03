@@ -20,12 +20,4 @@
 
     </androidx.media3.ui.PlayerView>
 
-    <androidx.media3.ui.SubtitleView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:id="@+id/exo_subtitle">
-
-    </androidx.media3.ui.SubtitleView>
-
 </FrameLayout>

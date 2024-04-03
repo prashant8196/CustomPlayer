@@ -30,6 +30,7 @@ import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.AdsConfiguration
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
@@ -46,6 +47,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector.MappedTrackInfo
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import androidx.media3.ui.DefaultTimeBar
@@ -71,6 +73,7 @@ import com.example.ptplayer.player.utils.GlideThumbnailTransformation
 import com.example.ptplayer.player.utils.convertSpriteData
 import com.google.ads.interactivemedia.v3.api.AdEvent
 import com.google.ads.interactivemedia.v3.api.AdsManager
+import com.google.common.collect.ImmutableList
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -117,7 +120,6 @@ class PrashantCustomPlayer(
     private var volumeSeekBar: SeekBar? = null
     private var audioManager: AudioManager? = null
     private var screenMode: ImageView? = null
-    private var isFullScreen: Int = 0
     private var customControl: ConstraintLayout? = null
     private var spriteData: Bitmap? = null
     private var spriteUrl: String? = null
@@ -351,7 +353,6 @@ class PrashantCustomPlayer(
                 drmLicenseUrl = token,
                 adsUrl = adUrl
             )
-            tvContentTitle?.text = contentTitle
             mediaPlayer?.setMediaItem(mediaItem)
             mediaPlayer?.prepare()
             mediaPlayer?.playWhenReady = true
@@ -372,7 +373,8 @@ class PrashantCustomPlayer(
         videoUrl: String,
         drmLicenseUrl: String? = null,
         adsUrl: String? = null,
-        subtitle: MutableList<MediaItem.SubtitleConfiguration>? = null
+        subtitle: MutableList<MediaItem.SubtitleConfiguration>? = null,
+        srtManual: String? = null
     ): MediaItem {
 
        /* val dataSourceFactory: DataSource.Factory = DefaultDataSource.Factory(context)
@@ -386,6 +388,19 @@ class PrashantCustomPlayer(
         val mediaItemBuilder = MediaItem.Builder()
             .setUri(videoUrl)
             .setMediaMetadata(MediaMetadata.Builder().setTitle(contentTitle).build())
+
+        if (!srtManual.isNullOrEmpty()){
+            val subTitleToPass = MediaItem.SubtitleConfiguration.Builder(
+                Uri.parse(srtManual)
+            ).setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                .build()
+            mediaItemBuilder.setSubtitleConfigurations(ImmutableList.of(subTitleToPass))
+
+            mediaPlayer?.trackSelectionParameters = mediaPlayer?.trackSelectionParameters?.buildUpon()
+                ?.setTrackTypeDisabled(C.TRACK_TYPE_TEXT,false)
+                ?.build()!!
+        }
 
         if (drm && !drmLicenseUrl.isNullOrEmpty()) {
             val drmConfig = MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
@@ -772,7 +787,7 @@ class PrashantCustomPlayer(
     }
 
     private fun isVideoRenderer(
-        mappedTrackInfo: MappingTrackSelector.MappedTrackInfo,
+        mappedTrackInfo: MappedTrackInfo,
         rendererIndex: Int
     ): Boolean {
         return mappedTrackInfo.getTrackGroups(rendererIndex).length > 0 &&
@@ -822,5 +837,68 @@ class PrashantCustomPlayer(
         }else{
             preTrack?.setColorFilter(getContext().resources.getColor(R.color.grey))
         }
+    }
+
+    private fun getSubTitleRendererIndex(mappedTrackInfo: MappedTrackInfo):Int{
+        for (i in 0 until mappedTrackInfo.rendererCount){
+            if (mappedTrackInfo.getRendererType(i) == C.TRACK_TYPE_TEXT){
+                return i
+            }
+        }
+        return -1
+    }
+
+    private fun getSubTitleTrackIndices(mappedTrackInfo: MappedTrackInfo , rendererIndex: Int):IntArray{
+        val trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex)
+        val trackIndices = IntArray(trackGroups.length)
+        for (i in 0 until trackGroups.length){
+            trackIndices[i] = i
+        }
+        return trackIndices
+    }
+
+
+    fun getSubTitleFormats():ArrayList<Format> {
+        val trackSelector = mediaPlayer?.trackSelector as? DefaultTrackSelector
+        val mappedTrackInfo = trackSelector?.currentMappedTrackInfo
+        videoFormatList.clear()
+        mappedTrackInfo?.let {
+            val videoRendererIndices = (0 until it.rendererCount).filter { index -> isVideoRendererSubTitle(it, index) }
+
+            videoRendererIndices.forEach { videoRendererIndex ->
+                val override = it.getTrackGroups(videoRendererIndex)
+                videoFormatList.addAll(getVideoQualityList(override))
+            }
+        }
+        return videoFormatList
+    }
+    private fun getSubTitleList(trackGroups: TrackGroupArray): List<Format> {
+        val videoQuality = mutableListOf<Format>()
+        for (groupIndex in 0 until trackGroups.length) {
+            val group = trackGroups[groupIndex]
+            videoQuality.addAll((0 until group.length).map { trackIndex -> group.getFormat(trackIndex) })
+        }
+        return videoQuality
+    }
+
+    private fun isVideoRendererSubTitle(
+        mappedTrackInfo: MappedTrackInfo,
+        rendererIndex: Int
+    ): Boolean {
+        return mappedTrackInfo.getTrackGroups(rendererIndex).length > 0 &&
+                C.TRACK_TYPE_TEXT == mappedTrackInfo.getRendererType(rendererIndex)
+    }
+
+    fun changeSubTitle(id:String){
+        val trackSelector = mediaPlayer?.trackSelector as? DefaultTrackSelector
+        trackSelector?.buildUponParameters()?.setPreferredTextLanguage(id)?.let { newParameters ->
+            trackSelector.setParameters(newParameters)
+        }
+
+        mediaPlayerView?.subtitleView?.isVisible = true
+    }
+
+    fun hideSubTitle(){
+        mediaPlayerView?.subtitleView?.isVisible = false
     }
 }

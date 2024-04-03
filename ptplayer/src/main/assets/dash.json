@@ -1,0 +1,76 @@
+{
+  "Dash": [
+    {
+      "id": "hi",
+      "name": "Hindi"
+    },
+    {
+      "id": "bn",
+      "name": "Bengali"
+    },
+    {
+      "id": "ur",
+      "name": "Urdu"
+    },
+    {
+      "id": "pa",
+      "name": "Punjabi"
+    },
+    {
+      "id": "mr",
+      "name": "Marathi"
+    },
+    {
+      "id": "te",
+      "name": "Telugu"
+    },
+    {
+      "id": "ta",
+      "name": "Tamil"
+    },
+    {
+      "id": "gu",
+      "name": "Gujarati"
+    },
+    {
+      "id": "kn",
+      "name": "Kannada"
+    },
+    {
+      "id": "or",
+      "name": "Oriya"
+    },
+    {
+      "id": "ml",
+      "name": "Malayalam"
+    },
+    {
+      "id": "as",
+      "name": "Assamese"
+    },
+    {
+      "id": "sa",
+      "name": "Sanskrit"
+    },
+    {
+      "id": "ar",
+      "name": "Arabic"
+    },
+    {
+      "id": "en",
+      "name": "English"
+    },
+    {
+      "id": "ms",
+      "name": "Bahasa Melayu"
+    },
+    {
+      "id": "id",
+      "name": "Bahasa Indonesia"
+    },
+    {
+      "id": "nl",
+      "name": "Dutch"
+    }
+  ]
+}

@@ -124,6 +124,7 @@ class PrashantCustomPlayer(
     private var spriteData: Bitmap? = null
     private var spriteUrl: String? = null
     private var videoFormatList = java.util.ArrayList<Format>()
+    private var videoSubTitleList = java.util.ArrayList<Format>()
     private var isReplayEnabled:Boolean = false
     private var llCentre: LinearLayout? = null
     private var llBottom: LinearLayout? = null
@@ -839,38 +840,19 @@ class PrashantCustomPlayer(
         }
     }
 
-    private fun getSubTitleRendererIndex(mappedTrackInfo: MappedTrackInfo):Int{
-        for (i in 0 until mappedTrackInfo.rendererCount){
-            if (mappedTrackInfo.getRendererType(i) == C.TRACK_TYPE_TEXT){
-                return i
-            }
-        }
-        return -1
-    }
-
-    private fun getSubTitleTrackIndices(mappedTrackInfo: MappedTrackInfo , rendererIndex: Int):IntArray{
-        val trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex)
-        val trackIndices = IntArray(trackGroups.length)
-        for (i in 0 until trackGroups.length){
-            trackIndices[i] = i
-        }
-        return trackIndices
-    }
-
-
     fun getSubTitleFormats():ArrayList<Format> {
         val trackSelector = mediaPlayer?.trackSelector as? DefaultTrackSelector
         val mappedTrackInfo = trackSelector?.currentMappedTrackInfo
-        videoFormatList.clear()
+        videoSubTitleList.clear()
         mappedTrackInfo?.let {
             val videoRendererIndices = (0 until it.rendererCount).filter { index -> isVideoRendererSubTitle(it, index) }
 
             videoRendererIndices.forEach { videoRendererIndex ->
                 val override = it.getTrackGroups(videoRendererIndex)
-                videoFormatList.addAll(getVideoQualityList(override))
+                videoSubTitleList.addAll(getVideoQualityList(override))
             }
         }
-        return videoFormatList
+        return videoSubTitleList
     }
     private fun getSubTitleList(trackGroups: TrackGroupArray): List<Format> {
         val videoQuality = mutableListOf<Format>()

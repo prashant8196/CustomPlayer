@@ -135,8 +135,6 @@ class MainActivity : AppCompatActivity(), PlayerSdkCallBack {
 
     @OptIn(UnstableApi::class) override fun onSettingClicked() {
         Toast.makeText(this,"Setting Clicked",Toast.LENGTH_SHORT).show()
-        var a =  binding.ptPlayer.getSubTitleFormats()
-        binding.ptPlayer.changeSubTitle(a.first().language.toString())
        // binding.ptPlayer.changeSubTitle()
     }
 

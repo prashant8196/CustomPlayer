@@ -216,20 +216,6 @@
                 android:src="@drawable/volume_off"
                 android:visibility="gone" />
 
-            <SeekBar
-                android:id="@+id/volume_seekbar"
-                android:layout_width="100dp"
-                android:layout_height="2dp"
-                android:layout_gravity="center"
-                android:background="@android:color/transparent"
-                android:clickable="false"
-                android:focusable="false"
-                android:progressDrawable="@drawable/custom_seekbar_progress"
-                android:thumb="@drawable/custom_thumb"
-                android:visibility="visible">
-
-            </SeekBar>
-
             <ImageView
                 android:id="@+id/repeat_off"
                 android:layout_width="60dp"
@@ -306,29 +292,29 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.media3.ui.DefaultTimeBar
-        android:id="@+id/player_scrub"
-        android:layout_width="match_parent"
-        android:background="@color/grey"
-        android:layout_height="2dp"
-        android:layout_marginHorizontal="30dp"
-        android:layout_marginVertical="10dp"
-        android:clickable="true"
-        android:defaultFocusHighlightEnabled="true"
-        android:focusable="true"
-        android:paddingVertical="2dp"
-        app:buffered_color="#FFFF00"
-        app:layout_constraintBottom_toTopOf="@+id/ll_bottom"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:played_color="@color/aol_secondary"
-        app:scrubber_disabled_size="2dp"
-        app:scrubber_dragged_size="5dp"
-        app:scrubber_enabled_size="5dp"
-        app:touch_target_height="5dp"
-        app:unplayed_color="@color/lb_grey"
-        tools:targetApi="o">
+        <com.example.ptplayer.player.utils.CustomTimeBar
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:clickable="true"
+            android:background="@color/grey"
+            android:focusable="true"
+            android:paddingVertical="2dp"
+            app:scrubber_enabled_size="5dp"
+            app:buffered_color="#FFFF00"
+            app:scrubber_dragged_size="5dp"
+            android:defaultFocusHighlightEnabled="true"
+            app:touch_target_height="5dp"
+            app:played_color="@color/aol_secondary"
+            app:unplayed_color="@color/lb_grey"
+            app:scrubber_disabled_size="2dp"
+            android:layout_marginHorizontal="30dp"
+            android:layout_marginVertical="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/ll_bottom"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/player_scrub"
+            tools:targetApi="o">
 
-    </androidx.media3.ui.DefaultTimeBar>
+        </com.example.ptplayer.player.utils.CustomTimeBar>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

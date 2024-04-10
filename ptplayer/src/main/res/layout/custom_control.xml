@@ -194,20 +194,6 @@
             android:src="@drawable/volume_off"
             android:contentDescription="@string/volume_icon" />
 
-        <SeekBar
-            android:layout_width="100dp"
-            android:layout_height="2dp"
-            android:id="@+id/volume_seekbar"
-            android:visibility="visible"
-            android:clickable="false"
-            android:focusable="false"
-            android:background="@android:color/transparent"
-            android:progressDrawable="@drawable/custom_seekbar_progress"
-            android:thumb="@drawable/custom_thumb"
-            android:layout_gravity="center">
-
-        </SeekBar>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

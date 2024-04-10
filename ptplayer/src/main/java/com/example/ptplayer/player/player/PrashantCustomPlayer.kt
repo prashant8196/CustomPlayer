@@ -18,7 +18,6 @@ import android.view.View.OnKeyListener
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -46,7 +45,6 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector.MappedTrackInfo
 import androidx.media3.exoplayer.trackselection.TrackSelector
 import androidx.media3.exoplayer.upstream.DefaultAllocator
@@ -72,7 +70,6 @@ import com.example.ptplayer.player.interfaces.PlayerSdkCallBack
 import com.example.ptplayer.player.utils.GlideThumbnailTransformation
 import com.example.ptplayer.player.utils.convertSpriteData
 import com.google.ads.interactivemedia.v3.api.AdEvent
-import com.google.ads.interactivemedia.v3.api.AdsManager
 import com.google.common.collect.ImmutableList
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -117,7 +114,6 @@ class PrashantCustomPlayer(
     private var playerScrub: DefaultTimeBar? = null
     private var flPreview: FrameLayout? = null
     private var tvContentTitle: TextView? = null
-    private var volumeSeekBar: SeekBar? = null
     private var audioManager: AudioManager? = null
     private var screenMode: ImageView? = null
     private var customControl: ConstraintLayout? = null
@@ -169,12 +165,6 @@ class PrashantCustomPlayer(
         setClickListenerOnViews()
         setUpControlClickListeners(view)
         audioManager = context.getSystemService(AUDIO_SERVICE) as AudioManager
-        volumeSeekBar?.max = audioManager?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) as Int
-        try {
-            volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
         val focusChangeListener = OnFocusChangeListener { viewFocus, hasFocus ->
             if (hasFocus) {
@@ -246,7 +236,6 @@ class PrashantCustomPlayer(
         tvContentTitle = view.findViewById(R.id.content_title)
         playerScrub = view.findViewById(R.id.player_scrub)
         flPreview = view.findViewById(R.id.previewFrameLayout)
-        volumeSeekBar = view.findViewById(R.id.volume_seekbar)
         customControl = view.findViewById(R.id.custom_control)
         preTrack = view.findViewById(R.id.previous)
         nextTrack = view.findViewById(R.id.next)
@@ -573,14 +562,6 @@ class PrashantCustomPlayer(
         }
     }
 
-    fun updateVolume() {
-        try {
-            volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     private fun getMediaItemWithAd(
         drm: Boolean, videoUrl: String,
         drmLicenseUrl: String? = null,
@@ -626,6 +607,7 @@ class PrashantCustomPlayer(
         this.contentType = contentType
         if (contentTitle?.isNotEmpty() == true) {
             this.contentTitle = contentTitle
+            tvContentTitle?.text = contentTitle
         }
         this.contentId = contentId
     }

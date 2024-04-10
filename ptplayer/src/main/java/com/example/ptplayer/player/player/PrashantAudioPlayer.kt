@@ -19,7 +19,6 @@ import android.view.View.OnKeyListener
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.SeekBar
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
@@ -90,7 +89,6 @@ class PrashantAudioPlayer(
     private var scrubImage: ImageView? = null
     private var playerScrub: DefaultTimeBar? = null
     private var tvContentTitle: TextView? = null
-    private var volumeSeekBar: SeekBar? = null
     private var audioManager: AudioManager? = null
     private var screenMode: ImageView? = null
     private var isFullScreen: Int = 0
@@ -119,12 +117,6 @@ class PrashantAudioPlayer(
         setClickListenerOnViews()
         setUpControlClickListeners(view)
         audioManager = context.getSystemService(AUDIO_SERVICE) as AudioManager
-        volumeSeekBar?.max = audioManager?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) as Int
-        try {
-            volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
         val focusChangeListener = OnFocusChangeListener { viewFocus, hasFocus ->
             if (hasFocus) {
@@ -199,7 +191,6 @@ class PrashantAudioPlayer(
         scrubImage = view.findViewById(R.id.imageView)
         tvContentTitle = view.findViewById(R.id.content_title)
         playerScrub = view.findViewById(R.id.player_scrub)
-        volumeSeekBar = view.findViewById(R.id.volume_seekbar)
         customControl = view.findViewById(R.id.custom_control)
         preTrack = view.findViewById(R.id.prev)
         nextTrack = view.findViewById(R.id.next)
@@ -580,13 +571,6 @@ class PrashantAudioPlayer(
     }
     fun setBgImage(url: String, placeholder: Int?) {
         loadImage(url, bannerIcon as ImageView, placeholder)
-    }
-    fun updateVolume() {
-        try {
-            volumeSeekBar?.progress = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)!!
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     fun setKeyToken(key: String) {
